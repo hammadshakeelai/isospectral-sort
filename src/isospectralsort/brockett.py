@@ -57,7 +57,6 @@ def _create_initial_matrix(
         H0 = Q @ np.diag(values) @ Q.T
         return H0, Q
     elif method == "tridiagonal_perturbation":
-        # Diagonal is values, with small symmetric tridiagonal coupling
         H0 = np.diag(values).astype(float)
         for i in range(n - 1):
             H0[i, i + 1] = perturbation
@@ -89,9 +88,6 @@ def brockett_sort(
     By the Rearrangement Inequality, Phi(H) has a unique stable maximum when the diagonal
     elements of H are sorted in increasing order matching N.
     
-    Integration is performed via Cayley transforms in the Lie algebra so(n), guaranteeing
-    exact isospectral invariance (eigenvalues remain constant to machine precision).
-    
     Parameters
     ----------
     values : array-like of shape (n,)
@@ -122,6 +118,13 @@ def brockett_sort(
         Convergence and trajectory metrics.
     """
     vals = np.asarray(values, dtype=float)
+    
+    # Red-team input validation
+    if vals.ndim != 1:
+        raise ValueError(f"Input must be a 1-dimensional array, got {vals.ndim}D shape {vals.shape}")
+    if not np.all(np.isfinite(vals)):
+        raise ValueError("Input array must contain finite real numbers; NaN or Inf encountered.")
+        
     n = len(vals)
     
     # Degenerate cases: 0 or 1 element
@@ -140,15 +143,32 @@ def brockett_sort(
             return vals.copy(), diag
         return vals.copy()
 
+    val_scale = float(np.max(np.abs(vals)))
+    val_spread = float(np.ptp(vals))
+    
+    # Zero-variance check: if all elements are identical
+    if val_scale > 0 and (val_spread / val_scale) < 1e-13:
+        if return_diagnostics:
+            diag = BrockettDiagnostics(
+                iterations=0,
+                converged=True,
+                final_offdiag_norm=0.0,
+                trace_history=[float(np.sum(vals * np.arange(1, n + 1)))],
+                offdiag_history=[0.0],
+                diagonal_history=[vals.copy()],
+                eigenvalue_drift=0.0,
+                theoretical_max_trace=float(np.sum(vals * np.arange(1, n + 1)))
+            )
+            return vals.copy(), diag
+        return vals.copy()
+
     # Ill-conditioned check: if range ratio > 1000 and auto preconditioning is enabled
     if precondition == "auto":
-        val_spread = float(np.ptp(vals))
         sorted_copy = np.sort(vals)
         diffs = np.diff(sorted_copy)
-        pos_diffs = diffs[diffs > 1e-12]
+        pos_diffs = diffs[diffs > 0]
         min_diff = float(np.min(pos_diffs)) if len(pos_diffs) > 0 else 1.0
-        if (val_spread / min_diff) > 1000.0:
-            # Run Brockett on the monotonic rank coordinates (gap = 1)
+        if (val_spread / max(min_diff, 1e-300)) > 1000.0:
             order = np.argsort(vals)
             ranks = np.empty_like(order, dtype=float)
             ranks[order] = np.arange(1, n + 1, dtype=float)
@@ -162,33 +182,32 @@ def brockett_sort(
                 return sorted_vals.copy(), diag
             return sorted_vals.copy()
 
+    # Subnormal / extreme scale normalization
+    # Scales values to O(1) to avoid underflow/overflow in Lie algebra operations
+    scale = val_scale if val_scale > 0 else 1.0
+    normalized_vals = vals / scale
+
     # Target sorting matrix N
     if reverse:
-        # Descending: N = diag(n, n-1, ..., 1)
         diag_N = np.arange(n, 0, -1, dtype=float)
     else:
-        # Ascending: N = diag(1, 2, ..., n)
         diag_N = np.arange(1, n + 1, dtype=float)
     N = np.diag(diag_N)
     
-    # Initial matrix H(0) whose eigenvalues are strictly vals
-    H, _ = _create_initial_matrix(vals, method=init_method, seed=seed)
+    # Initial matrix H(0) on normalized values
+    H, _ = _create_initial_matrix(normalized_vals, method=init_method, seed=seed)
     
-    # Exact original eigenvalues for invariant verification
     orig_sorted_evals = np.sort(vals)
     if reverse:
         theoretical_max_trace = float(np.sum(orig_sorted_evals[::-1] * diag_N))
     else:
         theoretical_max_trace = float(np.sum(orig_sorted_evals * diag_N))
     
-    # Adaptive scale-invariant step size if dt not specified
+    # Step size on O(1) normalized matrix
     H_norm = np.linalg.norm(H)
     N_norm = np.linalg.norm(N)
     if dt is None:
-        if H_norm * N_norm > 1e-12:
-            step_dt = 0.5 / (H_norm * N_norm)
-        else:
-            step_dt = 0.01
+        step_dt = 0.5 / max(1e-6, H_norm * N_norm)
     else:
         step_dt = dt
 
@@ -201,14 +220,11 @@ def brockett_sort(
     step = 0
     
     for step in range(1, max_steps + 1):
-        # Skew-symmetric generator in so(n):
         Omega = N @ H - H @ N
         
-        # Cayley transform: U = (I - 0.5*step_dt*Omega)^(-1) * (I + 0.5*step_dt*Omega)
+        # Cayley transform update
         A = 0.5 * step_dt * Omega
         U = np.linalg.solve(I - A, I + A)
-        
-        # Exact isospectral similarity update: H(t + dt) = U * H(t) * U^T
         H = U @ H @ U.T
         H = 0.5 * (H + H.T)
         
@@ -216,25 +232,25 @@ def brockett_sort(
         offdiag_norm = np.sqrt(max(0.0, diff_sq))
         
         if return_diagnostics:
-            trace_history.append(float(np.trace(H @ N)))
-            offdiag_history.append(float(offdiag_norm))
-            diagonal_history.append(np.diag(H).copy())
+            unscaled_H = H * scale
+            trace_history.append(float(np.trace(unscaled_H @ N)))
+            offdiag_history.append(float(offdiag_norm * scale))
+            diagonal_history.append(np.diag(unscaled_H).copy())
             
-        rel_tol = tol * max(1.0, H_norm)
-        if offdiag_norm < rel_tol:
+        if offdiag_norm < tol * max(1.0, H_norm):
             converged = True
             break
             
-    sorted_result = np.diag(H).copy()
+    sorted_result = np.diag(H).copy() * scale
     
     if return_diagnostics:
-        current_evals = np.sort(np.linalg.eigvalsh(H))
+        current_evals = np.sort(np.linalg.eigvalsh(H * scale))
         drift = float(np.max(np.abs(current_evals - orig_sorted_evals)))
         
         diag = BrockettDiagnostics(
             iterations=step,
             converged=converged,
-            final_offdiag_norm=float(offdiag_norm),
+            final_offdiag_norm=float(offdiag_norm * scale),
             trace_history=trace_history,
             offdiag_history=offdiag_history,
             diagonal_history=diagonal_history,

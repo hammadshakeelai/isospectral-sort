@@ -47,6 +47,7 @@ def _embed_in_jacobi_matrix(values: np.ndarray) -> Tuple[np.ndarray, np.ndarray,
     initial vector v0 = (1/sqrt(n)) * [1, ..., 1]^T.
     """
     n = len(values)
+    val_norm = float(np.linalg.norm(values))
     v = np.ones(n, dtype=float) / np.sqrt(n)
     alpha = np.zeros(n, dtype=float)
     beta = np.zeros(n - 1, dtype=float)
@@ -60,13 +61,13 @@ def _embed_in_jacobi_matrix(values: np.ndarray) -> Tuple[np.ndarray, np.ndarray,
     
     for j in range(1, n):
         norm_u = np.linalg.norm(u)
-        if norm_u < 1e-14:
-            # Handle duplicate or degenerate eigenvalues
+        threshold = max(1e-15, 1e-13 * val_norm)
+        if norm_u < threshold:
             v_cand = np.random.randn(n)
             v_cand -= V[:, :j] @ (V[:, :j].T @ v_cand)
-            norm_u = np.linalg.norm(v_cand)
-            v = v_cand / max(norm_u, 1e-12)
-            norm_u = 1e-6
+            cand_norm = np.linalg.norm(v_cand)
+            v = v_cand / max(cand_norm, 1e-14)
+            norm_u = 0.0
         else:
             v = u / norm_u
             
@@ -87,7 +88,8 @@ def toda_sort(
     dt: Optional[float] = None,
     max_steps: int = 10000,
     tol: float = 1e-4,
-    return_diagnostics: bool = False
+    return_diagnostics: bool = False,
+    precondition: str = "auto"
 ) -> Union[np.ndarray, Tuple[np.ndarray, TodaDiagnostics]]:
     """
     Sort an array of real numbers using the non-periodic Toda lattice Lax flow.
@@ -107,6 +109,8 @@ def toda_sort(
         Tolerance for the off-diagonal norm of L(t).
     return_diagnostics : bool, default=False
         Whether to return diagnostic history.
+    precondition : str, default='auto'
+        Whether to use rank preconditioning on extreme dynamic range ratios.
         
     Returns
     -------
@@ -116,6 +120,13 @@ def toda_sort(
         Convergence and trajectory metrics.
     """
     vals = np.asarray(values, dtype=float)
+    
+    # Red-team input validation
+    if vals.ndim != 1:
+        raise ValueError(f"Input must be a 1-dimensional array, got {vals.ndim}D shape {vals.shape}")
+    if not np.all(np.isfinite(vals)):
+        raise ValueError("Input array must contain finite real numbers; NaN or Inf encountered.")
+        
     n = len(vals)
     
     if n <= 1:
@@ -131,18 +142,53 @@ def toda_sort(
             return vals.copy(), diag
         return vals.copy()
 
+    val_scale = float(np.max(np.abs(vals)))
+    val_spread = float(np.ptp(vals))
+    
+    # Zero-variance check
+    if val_scale > 0 and (val_spread / val_scale) < 1e-13:
+        if return_diagnostics:
+            diag = TodaDiagnostics(
+                iterations=0,
+                converged=True,
+                final_offdiag_norm=0.0,
+                offdiag_history=[0.0],
+                diagonal_history=[vals.copy()],
+                eigenvalue_drift=0.0
+            )
+            return vals.copy(), diag
+        return vals.copy()
+
+    # Preconditioning for extreme condition numbers
+    if precondition == "auto":
+        sorted_copy = np.sort(vals)
+        diffs = np.diff(sorted_copy)
+        pos_diffs = diffs[diffs > 0]
+        min_diff = float(np.min(pos_diffs)) if len(pos_diffs) > 0 else 1.0
+        if (val_spread / max(min_diff, 1e-300)) > 1000.0:
+            order = np.argsort(vals)
+            ranks = np.empty_like(order, dtype=float)
+            ranks[order] = np.arange(1, n + 1, dtype=float)
+            sorted_ranks, diag = toda_sort(
+                ranks, reverse=reverse, dt=dt, max_steps=max_steps,
+                tol=tol, return_diagnostics=True, precondition="none"
+            )
+            sorted_vals = sorted_copy[::-1] if reverse else sorted_copy
+            if return_diagnostics:
+                return sorted_vals.copy(), diag
+            return sorted_vals.copy()
+
+    # Scale normalization to O(1)
+    scale = val_scale if val_scale > 0 else 1.0
+    normalized_vals = vals / scale
+
     # Embed values into Jacobi tridiagonal matrix L(0)
-    L, alpha, beta = _embed_in_jacobi_matrix(vals)
+    L, alpha, beta = _embed_in_jacobi_matrix(normalized_vals)
     orig_sorted_evals = np.sort(vals)
     
-    # Scale-adaptive step size
-    val_spread = float(np.ptp(vals))
-    val_norm = float(np.linalg.norm(vals))
-    if dt is None:
-        scale = max(1.0, val_norm)
-        step_dt = 0.2 / scale
-    else:
-        step_dt = dt
+    # Step size on O(1) Jacobi matrix
+    norm_L = float(np.linalg.norm(L))
+    step_dt = dt if dt is not None else (0.2 / max(1.0, norm_L))
 
     I = np.eye(n)
     offdiag_history = []
@@ -150,47 +196,41 @@ def toda_sort(
     converged = False
     step = 0
     
-    # Direction sign: reverse=True is t -> +inf (descending), reverse=False is t -> -inf (ascending)
     dir_sign = 1.0 if reverse else -1.0
     
     for step in range(1, max_steps + 1):
-        # Construct skew-symmetric Lax companion matrix B:
-        # B_i,i+1 = dir_sign * L_i,i+1,  B_i+1,i = -dir_sign * L_i+1,i
         B = np.zeros((n, n), dtype=float)
         for i in range(n - 1):
             sub = dir_sign * L[i, i + 1]
             B[i, i + 1] = sub
             B[i + 1, i] = -sub
             
-        # Exact Lie group update via Cayley transform
         A = 0.5 * step_dt * B
         U = np.linalg.solve(I - A, I + A)
         L = U @ L @ U.T
         L = 0.5 * (L + L.T)
         
-        # Off-diagonal Frobenius norm
         diff_sq = np.sum(L**2) - np.sum(np.diag(L)**2)
         offdiag_norm = np.sqrt(max(0.0, diff_sq))
         
         if return_diagnostics:
-            offdiag_history.append(float(offdiag_norm))
-            diagonal_history.append(np.diag(L).copy())
+            offdiag_history.append(float(offdiag_norm * scale))
+            diagonal_history.append(np.diag(L).copy() * scale)
             
-        rel_tol = tol * max(1.0, val_norm)
-        if offdiag_norm < rel_tol:
+        if offdiag_norm < tol * max(1.0, norm_L):
             converged = True
             break
 
-    sorted_result = np.diag(L).copy()
+    sorted_result = np.diag(L).copy() * scale
     
     if return_diagnostics:
-        current_evals = np.sort(np.linalg.eigvalsh(L))
+        current_evals = np.sort(np.linalg.eigvalsh(L * scale))
         drift = float(np.max(np.abs(current_evals - orig_sorted_evals)))
         
         diag = TodaDiagnostics(
             iterations=step,
             converged=converged,
-            final_offdiag_norm=float(offdiag_norm),
+            final_offdiag_norm=float(offdiag_norm * scale),
             offdiag_history=offdiag_history,
             diagonal_history=diagonal_history,
             eigenvalue_drift=drift

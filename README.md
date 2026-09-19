@@ -1,6 +1,6 @@
 # IsospectralSort (Continuous Dynamical & Geometric Sorting Systems)
 
-[![Tests](https://img.shields.io/badge/tests-24%20passed-success?style=for-the-badge&logo=pytest)](tests/)
+[![Tests](https://img.shields.io/badge/tests-65%20passed%20(100%25)-success?style=for-the-badge&logo=pytest)](tests/)
 [![Python](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue?style=for-the-badge&logo=python)](pyproject.toml)
 [![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)](LICENSE)
 [![Mathematics](https://img.shields.io/badge/pure-mathematics-indigo?style=for-the-badge&logo=latex)](papers/)

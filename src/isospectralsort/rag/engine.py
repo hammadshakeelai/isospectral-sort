@@ -29,12 +29,14 @@ class PaperRAG:
 
     def __init__(self, papers_dir: Optional[str] = None):
         if papers_dir is None:
-            # Default to papers/ directory in project root
             base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
             papers_dir = os.path.join(base_dir, "papers")
             if not os.path.exists(papers_dir):
-                # Fallback relative to current working directory
                 papers_dir = os.path.abspath("papers")
+        else:
+            papers_dir = os.path.abspath(papers_dir)
+            if not os.path.isdir(papers_dir):
+                raise ValueError(f"Invalid papers directory: {papers_dir}")
                 
         self.papers_dir = papers_dir
         self.chunks: List[PaperChunk] = []
@@ -67,7 +69,6 @@ class PaperRAG:
             elif line.startswith("**Author:**") or line.startswith("**Authors:**"):
                 author = line.split(":**", 1)[1].strip()
 
-        # Split by level-2 headers
         sections = re.split(r"\n(?=## )", content)
         chunks = []
         
@@ -76,7 +77,6 @@ class PaperRAG:
                 continue
             sec_lines = sec.strip().splitlines()
             sec_title = sec_lines[0].replace("#", "").strip() if sec_lines else f"Section {idx}"
-            body = "\n".join(sec_lines[1:]).strip() if len(sec_lines) > 1 else sec.strip()
             
             eqs = self._extract_equations(sec)
             tokens = self._tokenize(sec)
@@ -95,22 +95,22 @@ class PaperRAG:
         return chunks
 
     def _load_and_index(self):
-        """Index all markdown papers in papers_dir."""
+        """Index all markdown papers in papers_dir safely."""
         if not os.path.exists(self.papers_dir):
             return
 
         for fname in sorted(os.listdir(self.papers_dir)):
-            if fname.endswith(".md"):
+            if fname.endswith(".md") and not fname.startswith("."):
                 fpath = os.path.join(self.papers_dir, fname)
-                with open(fpath, "r", encoding="utf-8") as f:
-                    content = f.read()
-                chunks = self._chunk_markdown(fname, content)
-                self.chunks.extend(chunks)
+                if os.path.isfile(fpath):
+                    with open(fpath, "r", encoding="utf-8", errors="replace") as f:
+                        content = f.read()
+                    chunks = self._chunk_markdown(fname, content)
+                    self.chunks.extend(chunks)
 
         if not self.chunks:
             return
 
-        # Build TF-IDF index
         doc_count = len(self.chunks)
         df: Dict[str, int] = {}
         
@@ -130,32 +130,23 @@ class PaperRAG:
             
             total = len(tokens) if tokens else 1
             tfidf = {t: (cnt / total) * self.idf.get(t, 1.0) for t, cnt in tf.items()}
-            # Normalize vector
             norm = math.sqrt(sum(v * v for v in tfidf.values())) or 1.0
             self.tfidf_matrix.append({t: v / norm for t, v in tfidf.items()})
 
     def query(self, query_text: str, top_k: int = 3) -> List[Tuple[PaperChunk, float]]:
         """
         Retrieve the most relevant paper chunks for a given natural language query.
-        
-        Parameters
-        ----------
-        query_text : str
-            The question or search query.
-        top_k : int, default=3
-            Number of chunks to return.
-            
-        Returns
-        -------
-        results : List[Tuple[PaperChunk, float]]
-            List of (chunk, similarity_score) ordered by descending relevance.
         """
-        if not self.chunks:
+        if not self.chunks or not query_text:
             return []
 
-        q_tokens = self._tokenize(query_text)
+        safe_query = re.sub(r"[\x00-\x1f\x7f-\x9f]", " ", str(query_text)).strip()
+        if not safe_query:
+            return []
+
+        q_tokens = self._tokenize(safe_query)
         if not q_tokens:
-            return [(self.chunks[0], 0.0)]
+            return []
 
         q_tf: Dict[str, float] = {}
         for t in q_tokens:

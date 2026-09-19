@@ -102,6 +102,20 @@ def box_ball_sort(
         Spacetime evolution history.
     """
     vals = np.asarray(values)
+    
+    # Red-team input validation
+    if vals.ndim != 1:
+        raise ValueError(f"Input must be a 1-dimensional array, got {vals.ndim}D shape {vals.shape}")
+        
+    # Check for NaN / Inf if numeric
+    try:
+        fvals = vals.astype(float)
+        if not np.all(np.isfinite(fvals)):
+            raise ValueError("Input array must contain finite real numbers; NaN or Inf encountered.")
+    except (ValueError, TypeError) as e:
+        if "finite real numbers" in str(e):
+            raise
+            
     n = len(vals)
     
     if n <= 1:
@@ -120,12 +134,13 @@ def box_ball_sort(
     ranks = np.empty_like(order)
     ranks[order] = np.arange(1, n + 1)
     
-    # Invert to map soliton lengths back to original values
+    # Map soliton lengths back to original values
     length_to_val = {ranks[i]: vals[i] for i in range(n)}
     
     max_len = n
     buffer_len = max(8, 2 * max_len)
-    runway_len = max(500, n * (max_len + buffer_len) * 5)
+    # Bounded runway size to prevent memory exhaustion on large n
+    runway_len = min(20000, max(500, n * (max_len + buffer_len) * 5))
     
     grid = []
     initial_soliton_lengths = []
@@ -143,18 +158,17 @@ def box_ball_sort(
     target_sorted_lengths = sorted(initial_soliton_lengths)
     
     # Evolve until all solitons decouple and match the sorted targets exactly
-    max_steps = max(500, 4 * n * max_len)
+    max_steps = min(5000, max(500, 4 * n * max_len))
     for t in range(max_steps):
         lattice = bbs_step(lattice)
-        history.append(lattice.copy())
+        if return_diagnostics:
+            history.append(lattice.copy())
+            soliton_history.append(extract_soliton_lengths(lattice))
+            
         current_solitons = extract_soliton_lengths(lattice)
-        soliton_history.append(current_solitons)
-        
-        # Verify exact decoupling: multiset and order match target
         if current_solitons == target_sorted_lengths:
             break
                 
-    # Solitons on lattice from left to right are in ascending order of length
     final_solitons = extract_soliton_lengths(lattice)
     
     if final_solitons == target_sorted_lengths:

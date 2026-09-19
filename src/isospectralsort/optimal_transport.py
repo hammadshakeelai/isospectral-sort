@@ -65,7 +65,7 @@ def optimal_transport_sort(
         Whether to return diagnostic metadata.
     soft : bool, default=False
         If True, return differentiable soft-sorted values (P^T @ x).
-        If False, return exact discrete sorted values via permutation argmax.
+        If False, return exact discrete sorted values via collision-free rank projection.
         
     Returns
     -------
@@ -75,6 +75,13 @@ def optimal_transport_sort(
         Diagnostics including the doubly stochastic transport matrix.
     """
     vals = np.asarray(values, dtype=float)
+    
+    # Red-team input validation
+    if vals.ndim != 1:
+        raise ValueError(f"Input must be a 1-dimensional array, got {vals.ndim}D shape {vals.shape}")
+    if not np.all(np.isfinite(vals)):
+        raise ValueError("Input array must contain finite real numbers; NaN or Inf encountered.")
+        
     n = len(vals)
     
     if n <= 1:
@@ -90,10 +97,11 @@ def optimal_transport_sort(
             return vals.copy(), diag
         return vals.copy()
 
-    # Normalize values for numerical stability in the Gibbs kernel
-    std_val = float(np.std(vals))
-    if std_val < 1e-12:
-        # All elements identical
+    val_scale = float(np.max(np.abs(vals)))
+    val_spread = float(np.ptp(vals))
+    
+    # Zero-variance check relative to scale
+    if val_scale > 0 and (val_spread / val_scale) < 1e-13:
         if return_diagnostics:
             diag = OptimalTransportDiagnostics(
                 iterations=0,
@@ -106,9 +114,15 @@ def optimal_transport_sort(
             return vals.copy(), diag
         return vals.copy()
 
-    x_norm = (vals - np.mean(vals)) / std_val
+    # Scale normalization to avoid subnormal or overflow issues
+    scale = val_scale if val_scale > 0 else 1.0
+    normalized_vals = vals / scale
+    std_val = float(np.std(normalized_vals))
+    if std_val < 1e-12:
+        std_val = 1.0
+    x_norm = (normalized_vals - np.mean(normalized_vals)) / std_val
     
-    # Target ranks: ascending 1..n or descending n..1
+    # Target ranks
     if reverse:
         ranks = np.arange(n, 0, -1, dtype=float)
     else:
@@ -116,11 +130,7 @@ def optimal_transport_sort(
     ranks_norm = (ranks - np.mean(ranks)) / np.std(ranks)
     
     # Cost matrix derived from Rearrangement Inequality:
-    # C_ij = - x_norm[i] * ranks_norm[j]
     C = -np.outer(x_norm, ranks_norm)
-    
-    # Kernel matrix K = exp(-C / eps)
-    # Use log-sum-exp stabilization to avoid overflow/underflow
     min_C = np.min(C)
     K = np.exp(-(C - min_C) / epsilon)
     
@@ -130,17 +140,14 @@ def optimal_transport_sort(
     converged = False
     
     for it in range(1, max_iters + 1):
-        # u = 1 / (K v)
         Kv = K @ v
         Kv[Kv < 1e-30] = 1e-30
         u = 1.0 / Kv
         
-        # v = 1 / (K^T u)
         KTu = K.T @ u
         KTu[KTu < 1e-30] = 1e-30
         v = 1.0 / KTu
         
-        # Marginal violation check: ||P 1 - 1||_inf
         P = np.diag(u) @ K @ np.diag(v)
         row_err = np.max(np.abs(np.sum(P, axis=1) - 1.0))
         col_err = np.max(np.abs(np.sum(P, axis=0) - 1.0))
@@ -148,9 +155,7 @@ def optimal_transport_sort(
             converged = True
             break
 
-    # Doubly stochastic transport matrix P (rows sum to 1, cols sum to 1)
     P = np.diag(u) @ K @ np.diag(v)
-    # Re-normalize to exact doubly stochastic
     col_sums = np.sum(P, axis=0, keepdims=True)
     col_sums[col_sums < 1e-30] = 1.0
     P /= col_sums
@@ -158,13 +163,13 @@ def optimal_transport_sort(
     if soft:
         sorted_result = P.T @ vals
     else:
-        # Hard permutation assignment:
-        # Col j has the highest probability for which input x_i belongs at rank j
-        perm_idx = np.argmax(P, axis=0)
-        sorted_result = vals[perm_idx].copy()
+        # Collision-free rank expectation projection
+        # For each input i, compute its expected transport rank
+        expected_ranks = P @ np.arange(1, n + 1, dtype=float)
+        perm = np.argsort(expected_ranks)
+        sorted_result = vals[perm].copy()
         
     if return_diagnostics:
-        # Shannon entropy H(P) = -sum P_ij log(P_ij + eps)
         safe_P = np.clip(P, 1e-30, 1.0)
         entropy = -float(np.sum(safe_P * np.log(safe_P)))
         cost = float(np.sum(P * C))
