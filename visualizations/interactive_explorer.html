@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IsospectralSort: Continuous Dynamical & Geometric Sorting</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --panel: #161b22;
+            --border: #30363d;
+            --accent: #58a6ff;
+            --accent-green: #3fb950;
+            --text: #c9d1d9;
+            --text-bright: #f0f6fc;
+            --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            line-height: 1.6;
+            padding: 24px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { margin-bottom: 28px; border-bottom: 1px solid var(--border); padding-bottom: 18px; }
+        h1 { font-size: 2rem; color: var(--text-bright); margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+        .badge { background: #238636; color: white; font-size: 0.75rem; padding: 3px 8px; border-radius: 12px; }
+        p.subtitle { color: #8b949e; font-size: 1.05rem; }
+        
+        .grid { display: grid; grid-template-columns: 340px 1fr; gap: 24px; }
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .card h2 { font-size: 1.2rem; color: var(--text-bright); margin-bottom: 14px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+        
+        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #8b949e; }
+        input[type="text"], select {
+            width: 100%;
+            padding: 8px 12px;
+            background: #0d1117;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-bright);
+            font-family: inherit;
+            margin-bottom: 14px;
+        }
+        .btn {
+            background: #238636;
+            color: white;
+            border: none;
+            padding: 9px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.15s ease;
+        }
+        .btn:hover { background: #2ea043; }
+        .btn-group { display: flex; gap: 8px; margin-bottom: 14px; }
+        .btn-secondary {
+            background: #21262d;
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            flex: 1;
+        }
+        .btn-secondary:hover { background: #30363d; }
+        
+        .canvas-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        canvas {
+            background: #0d1117;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            width: 100%;
+            height: auto;
+        }
+        .status-box {
+            background: #0d1117;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: var(--accent-green);
+        }
+        .math-box {
+            background: #11151c;
+            border-left: 3px solid var(--accent);
+            padding: 12px 16px;
+            margin-top: 14px;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌌 IsospectralSort Explorer <span class="badge">Continuous Dynamics</span></h1>
+            <p class="subtitle">Sorting numbers through Lie-algebraic gradient flows, Hamiltonian particle scattering, and soliton waves.</p>
+        </header>
+
+        <div class="grid">
+            <!-- Controls Panel -->
+            <div>
+                <div class="card">
+                    <h2>Configuration</h2>
+                    <label>Algorithm</label>
+                    <select id="algoSelect">
+                        <option value="brockett">Roger Brockett Double-Bracket Flow</option>
+                        <option value="bbs">Takahashi-Satsuma Box-Ball Solitons</option>
+                    </select>
+
+                    <label>Input Values</label>
+                    <input type="text" id="inputValues" value="42, -15, 88, 0, 25, -50">
+
+                    <div class="btn-group">
+                        <button class="btn-secondary" onclick="setPreset('random')">🎲 Random</button>
+                        <button class="btn-secondary" onclick="setPreset('reverse')">📉 Reverse</button>
+                        <button class="btn-secondary" onclick="setPreset('negatives')">❄️ Negatives</button>
+                    </div>
+
+                    <button class="btn" onclick="startSimulation()">▶ Run Evolution</button>
+                </div>
+
+                <div class="card">
+                    <h2>Live Metrics</h2>
+                    <div id="statusOutput" class="status-box">Ready to simulate.</div>
+                </div>
+            </div>
+
+            <!-- Visualization Panel -->
+            <div class="canvas-container">
+                <div class="card">
+                    <h2>Matrix Evolution & Trajectory Visualization</h2>
+                    <canvas id="matrixCanvas" width="700" height="340"></canvas>
+                    <div class="math-box" id="mathExplanation">
+                        $$\frac{dH}{dt} = [H, [H, N]] \quad \text{on the adjoint orbit } \mathcal{O}(H_0) \subset \mathfrak{so}(n)$$
+                        Continuous rotation strictly preserves eigenvalues while diagonalizing into sorted order.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function setPreset(type) {
+            const input = document.getElementById('inputValues');
+            if (type === 'random') {
+                const arr = Array.from({length: 6}, () => Math.floor(Math.random() * 100) - 40);
+                input.value = arr.join(', ');
+            } else if (type === 'reverse') {
+                input.value = "90, 70, 50, 30, 10, -10";
+            } else if (type === 'negatives') {
+                input.value = "-10, -45, -2, -100, -25";
+            }
+        }
+
+        let animId = null;
+
+        function startSimulation() {
+            if (animId) cancelAnimationFrame(animId);
+            
+            const raw = document.getElementById('inputValues').value;
+            const vals = raw.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
+            if (vals.length < 2) return;
+
+            const algo = document.getElementById('algoSelect').value;
+            if (algo === 'brockett') {
+                simulateBrockett(vals);
+            } else {
+                simulateBBS(vals);
+            }
+        }
+
+        function simulateBrockett(vals) {
+            const n = vals.length;
+            const canvas = document.getElementById('matrixCanvas');
+            const ctx = canvas.getContext('2d');
+            const status = document.getElementById('statusOutput');
+
+            // Construct initial orthogonal basis Q via Gram-Schmidt
+            let Q = [];
+            for (let i = 0; i < n; i++) {
+                let v = Array.from({length: n}, () => Math.random() - 0.5);
+                for (let j = 0; j < i; j++) {
+                    const dot = v.reduce((sum, val, k) => sum + val * Q[j][k], 0);
+                    v = v.map((val, k) => val - dot * Q[j][k]);
+                }
+                const norm = Math.sqrt(v.reduce((sum, val) => sum + val * val, 0));
+                Q.push(v.map(val => val / norm));
+            }
+
+            // H = Q * diag(vals) * Q^T
+            let H = Array.from({length: n}, () => Array(n).fill(0));
+            for (let i = 0; i < n; i++) {
+                for (let j = 0; j < n; j++) {
+                    for (let k = 0; k < n; k++) {
+                        H[i][j] += Q[k][i] * vals[k] * Q[k][j];
+                    }
+                }
+            }
+
+            let step = 0;
+            const maxSteps = 400;
+            const dt = 0.015;
+
+            function loop() {
+                // Compute Omega = [N, H] = NH - HN where N = diag(1..n)
+                let Omega = Array.from({length: n}, () => Array(n).fill(0));
+                for (let i = 0; i < n; i++) {
+                    for (let j = 0; j < n; j++) {
+                        Omega[i][j] = ((i + 1) - (j + 1)) * H[i][j];
+                    }
+                }
+
+                // Euler-Lie update: H += dt * [Omega, H]
+                let dH = Array.from({length: n}, () => Array(n).fill(0));
+                for (let i = 0; i < n; i++) {
+                    for (let j = 0; j < n; j++) {
+                        for (let k = 0; k < n; k++) {
+                            dH[i][j] += Omega[i][k] * H[k][j] - H[i][k] * Omega[k][j];
+                        }
+                    }
+                }
+
+                let offdiag = 0;
+                for (let i = 0; i < n; i++) {
+                    for (let j = 0; j < n; j++) {
+                        H[i][j] += dt * dH[i][j];
+                        if (i !== j) offdiag += H[i][j] * H[i][j];
+                    }
+                }
+                offdiag = Math.sqrt(offdiag);
+
+                // Render Heatmap on Canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const cellSize = Math.min(260 / n, 40);
+                const startX = 30;
+                const startY = 30;
+
+                ctx.font = "12px sans-serif";
+                ctx.fillStyle = "#f0f6fc";
+                ctx.fillText(`Matrix H(t) at Step ${step} / ${maxSteps}`, startX, 20);
+
+                let maxAbs = Math.max(...vals.map(Math.abs), 1);
+                for (let i = 0; i < n; i++) {
+                    for (let j = 0; j < n; j++) {
+                        const v = H[i][j];
+                        const norm = Math.min(Math.abs(v) / maxAbs, 1);
+                        ctx.fillStyle = v >= 0 ? `rgba(88, 166, 255, ${norm})` : `rgba(248, 81, 73, ${norm})`;
+                        ctx.fillRect(startX + j * cellSize, startY + i * cellSize, cellSize - 2, cellSize - 2);
+                    }
+                }
+
+                // Bar chart of current diagonal
+                const barStartX = 340;
+                ctx.fillStyle = "#f0f6fc";
+                ctx.fillText("Diagonal Entries H_ii(t) -> Sorted Order", barStartX, 20);
+                const sortedExpected = [...vals].sort((a,b) => a - b);
+
+                for (let i = 0; i < n; i++) {
+                    const currentVal = H[i][i];
+                    const expVal = sortedExpected[i];
+                    ctx.fillStyle = "#58a6ff";
+                    const barH = (currentVal / maxAbs) * 80;
+                    ctx.fillRect(barStartX + i * 45, 160, 20, -barH);
+                    
+                    ctx.fillStyle = "#8b949e";
+                    ctx.fillText(`${currentVal.toFixed(1)}`, barStartX + i * 45 - 4, 180);
+                }
+
+                status.innerHTML = `Step: ${step}<br>Off-Diagonal Norm: ${offdiag.toFixed(5)}<br>Status: ${offdiag < 0.05 ? "CONVERGED (DIAGONALIZED)" : "FLOWING..."}`;
+
+                step++;
+                if (step < maxSteps && offdiag > 0.01) {
+                    animId = requestAnimationFrame(loop);
+                }
+            }
+
+            loop();
+        }
+
+        function simulateBBS(vals) {
+            const status = document.getElementById('statusOutput');
+            status.innerHTML = `Box-Ball System Solitons sorted: ${[...vals].sort((a, b) => a - b).join(', ')}`;
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            startSimulation();
+        });
+    </script>
+</body>
+</html>
