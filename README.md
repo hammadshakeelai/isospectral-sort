@@ -5,6 +5,10 @@
 [![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)](LICENSE)
 [![Mathematics](https://img.shields.io/badge/pure-mathematics-indigo?style=for-the-badge&logo=latex)](papers/)
 
+<p align="center">
+  <img src="assets/banner.png" alt="IsospectralSort Banner" width="100%" />
+</p>
+
 > **A production-grade Python package and research suite implementing the continuous, physical, and geometric sorting algorithms of pure mathematics — completely devoid of discrete comparisons, branch conditions, or pairwise swaps.**
 
 ---
