@@ -1322,7 +1322,7 @@
                 <div class="workbench-toolbar">
                     <div class="wb-group">
                         <span class="wb-label">Input Array:</span>
-                        <input type="text" id="simInputArr" class="sim-input" value="32, 56, 82, 28, 91, 66, 45, 19, 13, 26">
+                        <input type="text" id="simInputArr" class="sim-input" value="32, 56, 82, 28, 91, 66, 45, 19, 13, 26" onchange="rebuildSimulation(true)" onkeydown="if(event.key==='Enter') rebuildSimulation(true)">
                     </div>
                     <div class="wb-group">
                         <span class="wb-label">Presets:</span>
@@ -2167,9 +2167,14 @@
 
         function rebuildSimulation(autoPlay = true) {
             pausePlayback();
-            const raw = document.getElementById('simInputArr').value;
+            const inputEl = document.getElementById('simInputArr');
+            const raw = inputEl ? inputEl.value : "";
             const vals = raw.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
-            if (vals.length < 2) return;
+            if (vals.length < 2) {
+                if (inputEl) inputEl.style.borderColor = '#f43f5e';
+                return;
+            }
+            if (inputEl) inputEl.style.borderColor = 'var(--border)';
 
             const n = vals.length;
             const sortedVals = [...vals].sort((a, b) => a - b);
