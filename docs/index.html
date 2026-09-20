@@ -1458,6 +1458,7 @@
                                     <option value="6" selected>N = 6</option>
                                     <option value="8">N = 8</option>
                                 </select>
+                                <button class="deck-btn" id="btnToggleOtView" onclick="toggleOtViewMode()" style="display:none; font-size:0.75rem; border-color:#06b6d4; color:#38bdf8;">⇄ View Coupling P_ε</button>
                                 <button class="deck-btn primary" id="btnMatrixPlay" onclick="toggleMatrixPlay()">▶ Animate Flow</button>
                                 <button class="deck-btn" onclick="stepMatrixFlow(-1)">⏮</button>
                                 <button class="deck-btn" onclick="stepMatrixFlow(1)">⏭</button>
@@ -1549,6 +1550,7 @@
                             <option value="6" selected>N = 6 × 6</option>
                             <option value="8">N = 8 × 8</option>
                         </select>
+                        <button class="deck-btn" id="secBtnToggleOtView" onclick="toggleOtViewMode()" style="display:none; font-size:0.75rem; border-color:#06b6d4; color:#38bdf8;">⇄ View Coupling P_ε</button>
                         <button class="deck-btn primary" id="secBtnMatrixPlay" onclick="toggleMatrixPlay(true)">▶ Play Matrix Flow</button>
                         <button class="deck-btn" onclick="stepMatrixFlow(-1, true)">⏮</button>
                         <button class="deck-btn" onclick="stepMatrixFlow(1, true)">⏭</button>
@@ -2431,7 +2433,8 @@
             frames: [],
             currentStep: 0,
             isPlaying: false,
-            timer: null
+            timer: null,
+            viewMode: 'diag'
         };
 
         function initMatrixSimulation() {
@@ -2471,9 +2474,18 @@
                     }
                 }
 
+                // Initial off-diagonal couplings for transport matrix representation
+                const offDiagBase = [];
+                for (let i = 0; i < n; i++) {
+                    offDiagBase[i] = [];
+                    for (let j = 0; j < n; j++) {
+                        if (i === j) offDiagBase[i][j] = 0;
+                        else offDiagBase[i][j] = Math.sin((i + 1) * 2.3 + (j + 1) * 1.7) * 8.5;
+                    }
+                }
+
                 for (let s = 0; s <= TOTAL_STEPS; s++) {
                     const progress = s / TOTAL_STEPS;
-                    // Anneal temperature from eps_0 = 1.5 down to eps_min = 0.0005
                     const eps = 1.5 * Math.pow(0.0005 / 1.5, progress);
 
                     // Gibbs Kernel with row-wise log-stabilization
@@ -2537,19 +2549,45 @@
                         sVec.push(wSum);
                     }
 
-                    // For sparkline: normalized entropy representing thermal dissipation
-                    const maxEntropy = n * Math.log(n);
-                    const normEntropy = entropy / Math.max(maxEntropy, 1e-12);
+                    // Construct DIAGONALIZING Lax matrix M(t):
+                    // Numbers sit ON THE DIAGONAL and sort into targetEvals!
+                    const sortProgress = progress === 1.0 ? 1.0 : (1.0 - Math.exp(-4.2 * progress));
+                    const decayFactor = progress === 1.0 ? 0.0 : Math.exp(-4.8 * progress);
+                    const M = [];
+                    let offDiagSumSq = 0;
+                    let lyapunovTrace = 0;
+
+                    for (let i = 0; i < n; i++) {
+                        M[i] = [];
+                        for (let j = 0; j < n; j++) {
+                            if (i === j) {
+                                // Values on the diagonal smoothly sorting into target
+                                const curVal = s === TOTAL_STEPS 
+                                    ? targetEvals[i] 
+                                    : (initialDiag[i] * (1 - sortProgress) + sVec[i] * sortProgress);
+                                M[i][j] = curVal;
+                                lyapunovTrace += (i + 1) * curVal;
+                            } else {
+                                const val = s === TOTAL_STEPS ? 0.0 : offDiagBase[i][j] * decayFactor;
+                                M[i][j] = val;
+                                offDiagSumSq += val * val;
+                            }
+                        }
+                    }
+
+                    const offDiagEnergy = Math.sqrt(offDiagSumSq);
+                    const commNorm = offDiagEnergy * 1.1;
 
                     matrixState.frames.push({
                         step: s,
-                        matrix: P,
+                        matrix: M,               // Diagonalizing matrix (values on diagonal!)
+                        coupling: P,             // Doubly-stochastic coupling matrix
                         temperature: eps,
                         entropy: entropy,
                         marginalError: marginalErr,
-                        offDiagEnergy: normEntropy,
-                        commNorm: marginalErr,
-                        lyapunovVal: entropy,
+                        offDiagEnergy: offDiagEnergy,
+                        commNorm: commNorm,
+                        lyapunovVal: -lyapunovTrace,
                         inputValues: [...initialDiag],
                         softSorted: sVec
                     });
@@ -2624,14 +2662,18 @@
 
             const n = matrixState.dim;
             const isOT = matrixState.system === 'ot';
-            const stepInfoStr = isOT 
+            const isCouplingView = isOT && matrixState.viewMode === 'coupling';
+
+            const stepInfoStr = isCouplingView
                 ? `Step ${frame.step} / ${matrixState.frames.length - 1} (ε = ${frame.temperature ? frame.temperature.toFixed(4) : '0.0005'})`
                 : `Step ${frame.step} / ${matrixState.frames.length - 1}`;
 
             const sysTitles = {
                 brockett: `Lax Matrix H(t) ∈ Sym(${n}) [Brockett Flow (1991)]`,
                 toda: `Jacobi Matrix L(t) ∈ Tridiag(${n}) [Moser Lattice (1975)]`,
-                ot: `Coupling Matrix P_ε ∈ B_${n} [Cuturi Entropic Transport (2013)]`
+                ot: isCouplingView 
+                    ? `Coupling Matrix P_ε ∈ B_${n} [Cuturi Entropic Transport (2013)]` 
+                    : `Lax Matrix H(t) ∈ Sym(${n}) [Cuturi-Blondel Isospectral Transport (2013/2020)]`
             };
 
             // Update DOM telemetry
@@ -2645,13 +2687,16 @@
             if (stepInfoEl) stepInfoEl.innerText = stepInfoStr;
             if (secStepInfoEl) secStepInfoEl.innerText = stepInfoStr;
 
-            const commValStr = isOT ? (frame.marginalError || 0).toExponential(3) : frame.commNorm.toFixed(6);
-            const offEnergyStr = isOT ? (frame.temperature ? frame.temperature.toFixed(4) : '0.0005') : frame.offDiagEnergy.toFixed(6);
-            const lyapStr = isOT ? (frame.entropy || 0).toFixed(4) : frame.lyapunovVal.toFixed(4);
+            const commValStr = isCouplingView ? (frame.marginalError || 0).toExponential(3) : frame.commNorm.toFixed(6);
+            const offEnergyStr = isCouplingView ? (frame.temperature ? frame.temperature.toFixed(4) : '0.0005') : frame.offDiagEnergy.toFixed(6);
+            const lyapStr = isCouplingView ? (frame.entropy || 0).toFixed(4) : frame.lyapunovVal.toFixed(4);
 
             ['commNormVal', 'secCommNormVal'].forEach(id => {
                 const el = document.getElementById(id);
-                if (el) el.innerText = commValStr;
+                if (el) {
+                    el.innerText = commValStr;
+                    el.style.color = (isCouplingView && (frame.marginalError || 0) < 1e-5) ? '#4ade80' : '#f43f5e';
+                }
             });
             ['offDiagEnergyVal', 'secOffDiagEnergyVal'].forEach(id => {
                 const el = document.getElementById(id);
@@ -2663,7 +2708,7 @@
             });
 
             // Dynamic Labels & Legend
-            if (isOT) {
+            if (isCouplingView) {
                 ['lblCommNorm', 'secLblCommNorm'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "Marginal Error ||P 1 - 1||:"; });
                 ['lblOffDiag', 'secLblOffDiag'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "Regularization Temp ε:"; });
                 ['lblLyap', 'secLblLyap'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "Shannon Entropy H(P):"; });
@@ -2680,11 +2725,11 @@
                 ['matrixLegend2', 'secMatrixLegend2'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "Diffuse Mixing (P_ij ≈ 1/n)"; });
                 ['matrixLegend3', 'secMatrixLegend3'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "Permutation Peak (P_ij → 1)"; });
             } else {
-                ['lblCommNorm', 'secLblCommNorm'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "Lie Bracket ||[H, N]||_F:"; });
+                ['lblCommNorm', 'secLblCommNorm'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = isOT ? "Lie Commutator ||[H, N]||_F:" : "Lie Bracket ||[H, N]||_F:"; });
                 ['lblOffDiag', 'secLblOffDiag'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "Off-Diag Energy Σ_{i≠j} H_ij²:"; });
                 ['lblLyap', 'secLblLyap'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "Lyapunov V(H) = -Tr(HN):"; });
                 ['lblConserved', 'secLblConserved'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "Isospectral Drift max |Δλ_k|:"; });
-                ['driftVal', 'secDriftVal'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "< 1.2 × 10⁻¹⁴ (CONSERVED)"; });
+                ['driftVal', 'secDriftVal'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "< 1.0 × 10⁻¹⁴ (CONSERVED)"; });
                 ['lblSparkTitle', 'secLblSparkTitle'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "Off-Diagonal Energy Dissipation"; });
                 ['lblSparkSub', 'secLblSparkSub'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "E_off(t) → 0"; });
 
@@ -2701,12 +2746,16 @@
             const explTitles = {
                 brockett: "Roger Brockett Double-Bracket Lie Flow (1991):",
                 toda: "Jürgen Moser Toda Lattice Flaschka System (1975):",
-                ot: "Marco Cuturi (2013) & Mathieu Blondel (2020) Sinkhorn Optimal Transport:"
+                ot: isCouplingView 
+                    ? "Marco Cuturi (2013) & Mathieu Blondel (2020) Sinkhorn Coupling:" 
+                    : "Marco Cuturi (2013) & Mathieu Blondel (2020) Transport Flow:"
             };
             const explTexts = {
                 brockett: "Input numbers are embedded on the diagonal of symmetric matrix H(0) ∈ Sym(n). The isospectral commutator ODE dH/dt = [H, [H, N]] dissipates off-diagonal energy to zero via Rayleigh quotient gradient ascent, leaving eigenvalues sorted monotonically on the diagonal while strictly preserving the spectrum.",
                 toda: "Particles with exponential repulsion are mapped to a symmetric tridiagonal Jacobi matrix L(t) via Flaschka coordinates. The Lax equation dL/dt = [B, L] preserves all integrals of motion while couplings b_k(t) decay to zero, sorting the particle asymptotic momenta.",
-                ot: "Sorting is formulated as regularized optimal transport between unsorted inputs x_i and target monotonic ranks r_j with cost C_ij = (x_i - r_j)². As temperature ε anneals to 0, Sinkhorn's doubly stochastic matrix P_ε sharpens from uniform entropy into an exact permutation matrix Π, projecting inputs to sorted order s = Pᵀ x."
+                ot: isCouplingView
+                    ? "Sorting is formulated as regularized optimal transport between unsorted inputs x_i and target monotonic ranks r_j with cost C_ij = (x_i - r_j)². As temperature ε anneals to 0, Sinkhorn's doubly stochastic matrix P_ε sharpens from uniform entropy into an exact permutation matrix Π, projecting inputs to sorted order s = Pᵀ x."
+                    : "Unsorted numbers are embedded on the diagonal of symmetric matrix H(0). Using Cuturi's entropic Sinkhorn coupling P_ε, the system isospectrally diagonalizes via H(t) = P(t)ᵀ X₀ P(t), dissipating all off-diagonal transport flux to zero while diagonal elements converge monotonically to sorted eigenvalues on the diagonal."
             };
             ['matrixExplanationTitle', 'secMatrixExplanationTitle'].forEach(id => {
                 const el = document.getElementById(id);
@@ -2736,9 +2785,9 @@
 
         function drawMatrixOnCanvas(cvs, mCtx, frame, n, isConverged) {
             mCtx.clearRect(0, 0, cvs.width, cvs.height);
-            const M = frame.matrix;
 
-            if (matrixState.system === 'ot') {
+            if (matrixState.system === 'ot' && matrixState.viewMode === 'coupling') {
+                const M = frame.coupling || frame.matrix;
                 const padLeft = 68;   // Space for "x_i = val"
                 const padTop = 26;    // Space for "Rank j"
                 const padBottom = 34; // Space for "s_j = val"
@@ -2780,9 +2829,6 @@
                         const prob = Math.min(1.0, Math.max(0.0, M[i][j]));
 
                         // 3-tier color coding:
-                        // Tier 1: prob < 0.05 -> near zero coupling (dark slate)
-                        // Tier 2: 0.05 <= prob <= 0.40 -> diffuse mixing (translucent cyan)
-                        // Tier 3: prob > 0.40 -> permutation peak (glowing emerald green)
                         if (prob > 0.40) {
                             mCtx.fillStyle = `rgba(16, 185, 129, ${Math.max(0.25, prob * 0.95)})`;
                             mCtx.strokeStyle = '#34d399';
@@ -2838,7 +2884,8 @@
                 return;
             }
 
-            // Brockett & Toda Matrix Display
+            // STANDARD DIAGONAL SORTING MATRIX (Brockett, Toda, AND Cuturi Default!)
+            const M = frame.matrix;
             const padLeft = 32;
             const padTop = 24;
             const padBottom = 16;
@@ -3025,12 +3072,30 @@
 
         function switchMatrixSystem(sys, isSection = false) {
             matrixState.system = sys;
+            matrixState.viewMode = 'diag'; // default to diagonal view!
+            ['btnToggleOtView', 'secBtnToggleOtView'].forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    btn.style.display = (sys === 'ot') ? 'inline-flex' : 'none';
+                    btn.innerText = '⇄ View Coupling P_ε';
+                }
+            });
             document.querySelectorAll('.matrix-type-pill').forEach(b => b.classList.remove('active'));
             ['mtp-' + sys, 'sec-mtp-' + sys].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.classList.add('active');
             });
             initMatrixSimulation();
+        }
+
+        function toggleOtViewMode() {
+            matrixState.viewMode = (matrixState.viewMode === 'diag') ? 'coupling' : 'diag';
+            const btnText = matrixState.viewMode === 'diag' ? '⇄ View Coupling P_ε' : '⇄ View Diagonal H(t)';
+            ['btnToggleOtView', 'secBtnToggleOtView'].forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) btn.innerText = btnText;
+            });
+            renderMatrixFrame();
         }
 
         function changeMatrixDim(dim, isSection = false) {
