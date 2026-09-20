@@ -1739,15 +1739,43 @@
             bbs: [
                 '<span class="kw">import</span> numpy <span class="kw">as</span> np',
                 '',
-                '<span class="kw">def</span> <span class="fn">box_ball_sort</span>(values):',
-                '    <span class="str">"""Takahashi-Satsuma (1990) Box-Ball Soliton Automaton."""</span>',
-                '    <span class="cmt"># 1. Carrier sweeps 1D lattice left-to-right</span>',
-                '    <span class="cmt"># 2. Picks up balls from occupied boxes (carrier load + 1)</span>',
-                '    <span class="cmt"># 3. Drops ball in empty box if carrier load > 0</span>',
-                '    <span class="cmt"># Solitons of length L move at velocity v = L</span>',
-                '    <span class="cmt"># Elastic phase-shift collisions spatially separate</span>',
-                '    <span class="cmt"># wavepackets into monotonically sorted train!</span>',
-                '    <span class="kw">return</span> np.sort(values)'
+                '<span class="kw">def</span> <span class="fn">bbs_step</span>(lattice):',
+                '    <span class="str">"""Carrier sweeps 1D lattice left-to-right (Takahashi-Satsuma 1990)."""</span>',
+                '    next_lattice = np.zeros_like(lattice)',
+                '    carrier = <span class="num">0</span>',
+                '    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(lattice)):',
+                '        <span class="kw">if</span> lattice[i] == <span class="num">1</span>:',
+                '            carrier += <span class="num">1</span>  <span class="cmt"># Carrier picks up ball</span>',
+                '        <span class="kw">elif</span> lattice[i] == <span class="num">0</span> <span class="kw">and</span> carrier &gt; <span class="num">0</span>:',
+                '            next_lattice[i] = <span class="num">1</span>  <span class="cmt"># Carrier drops ball into empty box</span>',
+                '            carrier -= <span class="num">1</span>',
+                '    <span class="kw">return</span> next_lattice',
+                '',
+                '<span class="kw">def</span> <span class="fn">extract_soliton_lengths</span>(lattice):',
+                '    <span class="str">"""Extract contiguous runs of balls (soliton wavepackets)."""</span>',
+                '    runs, cur = [], <span class="num">0</span>',
+                '    <span class="kw">for</span> b <span class="kw">in</span> lattice:',
+                '        <span class="kw">if</span> b == <span class="num">1</span>: cur += <span class="num">1</span>',
+                '        <span class="kw">elif</span> cur &gt; <span class="num">0</span>: runs.append(cur); cur = <span class="num">0</span>',
+                '    <span class="kw">if</span> cur &gt; <span class="num">0</span>: runs.append(cur)',
+                '    <span class="kw">return</span> runs',
+                '',
+                '<span class="kw">def</span> <span class="fn">box_ball_sort</span>(values, max_steps=<span class="num">200</span>):',
+                '    <span class="str">"""Sort array via ultradiscrete KdV soliton scattering."""</span>',
+                '    n = <span class="fn">len</span>(values)',
+                '    <span class="cmt"># 1. Encode values into soliton wavepackets separated by empty boxes</span>',
+                '    grid = []',
+                '    <span class="kw">for</span> v <span class="kw">in</span> values:',
+                '        grid.extend([<span class="num">1</span>] * <span class="fn">int</span>(<span class="fn">max</span>(<span class="num">1</span>, <span class="fn">round</span>(v))))',
+                '        grid.extend([<span class="num">0</span>] * <span class="num">10</span>)  <span class="cmt"># Buffer zone between wavepackets</span>',
+                '    lattice = np.array(grid + [<span class="num">0</span>] * (n * <span class="num">25</span>))',
+                '',
+                '    <span class="cmt"># 2. Carrier dynamics: velocity v = L (phase-shift collisions)</span>',
+                '    <span class="kw">for</span> t <span class="kw">in</span> <span class="fn">range</span>(max_steps):',
+                '        lattice = bbs_step(lattice)',
+                '',
+                '    <span class="cmt"># 3. Read out spatially sorted soliton train</span>',
+                '    <span class="kw">return</span> np.array(extract_soliton_lengths(lattice))'
             ]
         };
 
@@ -1881,12 +1909,23 @@
                     currentVals.push(startVal * (1 - t) + targetVal * t);
                 }
 
+                let currentExecLine = 16;
+                if (simState.algo === 'brockett') {
+                    currentExecLine = 15 + (f % 4);
+                } else if (simState.algo === 'toda') {
+                    currentExecLine = 12 + (f % 7);
+                } else if (simState.algo === 'ot') {
+                    currentExecLine = 15 + (f % 3);
+                } else if (simState.algo === 'bbs') {
+                    currentExecLine = (f % 2 === 0) ? (7 + (f % 6)) : 36;
+                }
+
                 simState.frames.push({
                     frameIdx: f,
                     progress: t,
                     vals: currentVals,
                     activeIdx: activeIdx,
-                    execLine: 16 + (f % 5)
+                    execLine: currentExecLine
                 });
             }
 
