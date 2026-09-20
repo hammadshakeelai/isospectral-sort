@@ -75,9 +75,9 @@ $$\frac{dL}{dt} = [B, L] = BL - LB$$
    $$a_k(t) \to 0, \quad k = 1, \dots, n-1$$
    $$b_k(t) \to \lambda_{n-k+1}, \quad k = 1, \dots, n$$
    That is, the diagonal entries converge to the eigenvalues in **descending order**:
-   $$\lim_{t \to +\infty} \operatorname{diag}(L(t)) = (\lambda_n, \lambda_{n-1}, \dots, \lambda_1)$$
+   $$\lim_{t \to +\infty} \mathrm{diag}(L(t)) = (\lambda_n, \lambda_{n-1}, \dots, \lambda_1)$$
 3. As $t \to -\infty$:
-   $$\lim_{t \to -\infty} \operatorname{diag}(L(t)) = (\lambda_1, \lambda_2, \dots, \lambda_n)$$
+   $$\lim_{t \to -\infty} \mathrm{diag}(L(t)) = (\lambda_1, \lambda_2, \dots, \lambda_n)$$
    That is, the diagonal entries converge to the eigenvalues in **ascending order**.
 
 ### Physical Intuition

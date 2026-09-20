@@ -24,7 +24,7 @@ where $\mathcal{U}(a, b)$ is the Birkhoff polytope of doubly stochastic matrices
 ## 2. Brenier's Polar Factorization Theorem
 
 ### Theorem (Brenier, 1991; 1D Monotonicity)
-*Let $c(x, y) = h(x - y)$ where $h$ is strictly convex (e.g. quadratic cost $c(x, y) = (x - y)^2$). Then the optimal transport map $T^*: \operatorname{supp}(\mu) \to \operatorname{supp}(\nu)$ exists, is unique, and is strictly monotonically increasing:*
+*Let $c(x, y) = h(x - y)$ where $h$ is strictly convex (e.g. quadratic cost $c(x, y) = (x - y)^2$). Then the optimal transport map $T^*: \mathrm{supp}(\mu) \to \mathrm{supp}(\nu)$ exists, is unique, and is strictly monotonically increasing:*
 $$x_i < x_k \implies T^*(x_i) < T^*(x_k)$$
 
 ### Connection to Sorting
@@ -47,11 +47,11 @@ $$\min_{P \in \mathcal{U}} \langle P, C \rangle - \varepsilon H(P)$$
 where $H(P) = -\sum_{i,j} P_{ij}(\ln P_{ij} - 1)$ is the Shannon entropy.
 
 The optimal solution is given by:
-$$P_\varepsilon = \operatorname{diag}(u) K \operatorname{diag}(v), \quad K_{ij} = \exp(-C_{ij}/\varepsilon)$$
+$$P_\varepsilon = \mathrm{diag}(u) K \mathrm{diag}(v), \quad K_{ij} = \exp(-C_{ij}/\varepsilon)$$
 where $u, v \in \mathbb{R}_+^n$ are computed via Sinkhorn-Knopp fixed-point iterations:
 $$u \leftarrow \frac{a}{K v}, \quad v \leftarrow \frac{b}{K^T u}$$
 
 ### Properties:
 1. **Infinite Differentiability:** $P_\varepsilon(x)$ is $C^\infty$ with respect to the input values $x$.
 2. **Asymptotic Exactness:** As $\varepsilon \to 0^+$, $P_\varepsilon$ converges to the exact discrete sorting permutation matrix $P^*$.
-3. **Soft Sorting:** The vector $s = n P_\varepsilon^T x$ is a differentiable relaxation of the sorted array $\operatorname{sort}(x)$.
+3. **Soft Sorting:** The vector $s = n P_\varepsilon^T x$ is a differentiable relaxation of the sorted array $\mathrm{sort}(x)$.

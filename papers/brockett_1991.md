@@ -13,7 +13,7 @@ We study a class of smooth, continuous-time dynamical systems defined on the spa
 
 $$\frac{dH}{dt} = [H, [H, N]]$$
 
-where $H(t)$ and $N$ are symmetric $n \times n$ matrices and $[A, B] = AB - BA$ denotes the standard matrix commutator (Lie bracket). We prove that this differential equation defines an isospectral gradient flow on the adjoint orbit of the orthogonal Lie group $\mathrm{O}(n)$. When $N$ is chosen as a fixed diagonal matrix with distinct, ordered entries ($N = \operatorname{diag}(\mu_1, \dots, \mu_n)$ with $\mu_1 < \mu_2 < \dots < \mu_n$), the steady-state solution $H(\infty)$ is diagonal, with its eigenvalues arranged in strictly ascending order. Consequently, the flow sorts arbitrary lists of numbers, computes matrix eigenvalues, and solves linear programming problems in continuous physical time.
+where $H(t)$ and $N$ are symmetric $n \times n$ matrices and $[A, B] = AB - BA$ denotes the standard matrix commutator (Lie bracket). We prove that this differential equation defines an isospectral gradient flow on the adjoint orbit of the orthogonal Lie group $\mathrm{O}(n)$. When $N$ is chosen as a fixed diagonal matrix with distinct, ordered entries ($N = \mathrm{diag}(\mu_1, \dots, \mu_n)$ with $\mu_1 < \mu_2 < \dots < \mu_n$), the steady-state solution $H(\infty)$ is diagonal, with its eigenvalues arranged in strictly ascending order. Consequently, the flow sorts arbitrary lists of numbers, computes matrix eigenvalues, and solves linear programming problems in continuous physical time.
 
 ---
 
@@ -33,7 +33,7 @@ $$\mathfrak{so}(n) = \{ \Omega \in \mathbb{R}^{n \times n} \mid \Omega^T = -\Ome
 
 Equip $\mathcal{S}(n)$ with the standard Frobenius inner product:
 
-$$\langle A, B \rangle = \operatorname{Tr}(AB)$$
+$$\langle A, B \rangle = \mathrm{Tr}(AB)$$
 
 Given an initial symmetric matrix $H_0 \in \mathcal{S}(n)$, consider the adjoint orbit $\mathcal{O}(H_0)$ under the action of the orthogonal group $\mathrm{O}(n)$:
 
@@ -67,34 +67,34 @@ $$\frac{d\tilde{H}}{dt} = \dot{\Theta} H_0 \Theta^T + \Theta H_0 \dot{\Theta}^T 
 By uniqueness of ODE solutions, $H(t) = \Theta(t) H_0 \Theta(t)^T$. Because $H(t)$ is related to $H_0$ by an orthogonal similarity transformation, its eigenvalues are identically preserved for all $t$.
 
 Furthermore, $\dot{H} = 0 \iff [H, [H, N]] = 0$. Taking the trace of $[H, N]^T [H, N]$:
-$$\|[H, N]\|_F^2 = -\operatorname{Tr}([H, N]^2) = \operatorname{Tr}([H, [H, N]] N) = \operatorname{Tr}(\dot{H} N) = 0$$
+$$\|[H, N]\|_F^2 = -\mathrm{Tr}([H, N]^2) = \mathrm{Tr}([H, [H, N]] N) = \mathrm{Tr}(\dot{H} N) = 0$$
 Hence $\dot{H} = 0$ if and only if $[H, N] = 0$. $\blacksquare$
 
 ---
 
 ### Theorem 2 (Gradient Flow on the Adjoint Orbit)
 *The double-bracket flow $\dot{H} = [H, [H, N]]$ is the steepest ascent gradient flow of the linear functional:*
-$$\Phi(H) = \operatorname{Tr}(HN)$$
+$$\Phi(H) = \mathrm{Tr}(HN)$$
 *on the Riemannian manifold $\mathcal{O}(H_0)$ equipped with the normal metric induced by the Lie algebra.*
 
 **Proof:**  
 Let $\delta H \in T_H \mathcal{O}(H_0)$ be an arbitrary tangent vector, so $\delta H = [\Omega, H]$ for some $\Omega \in \mathfrak{so}(n)$. The directional derivative of $\Phi$ along $\delta H$ is:
-$$d\Phi(H)(\delta H) = \operatorname{Tr}((\delta H) N) = \operatorname{Tr}([\Omega, H] N) = \operatorname{Tr}(\Omega(HN - NH)) = \operatorname{Tr}(\Omega [H, N])$$
-Under the standard inner product on $\mathfrak{so}(n)$, $\langle A, B \rangle = -\frac{1}{2}\operatorname{Tr}(AB)$, the gradient of $\Phi$ on the Lie algebra corresponds to $\Omega^* = [N, H]$. Projecting back to the manifold gives the tangent vector:
-$$\operatorname{grad} \Phi(H) = [\Omega^*, H] = [[N, H], H] = [H, [H, N]]$$
-Thus $\dot{H} = \operatorname{grad} \Phi(H)$ is strictly the steepest ascent gradient flow. $\blacksquare$
+$$d\Phi(H)(\delta H) = \mathrm{Tr}((\delta H) N) = \mathrm{Tr}([\Omega, H] N) = \mathrm{Tr}(\Omega(HN - NH)) = \mathrm{Tr}(\Omega [H, N])$$
+Under the standard inner product on $\mathfrak{so}(n)$, $\langle A, B \rangle = -\frac{1}{2}\mathrm{Tr}(AB)$, the gradient of $\Phi$ on the Lie algebra corresponds to $\Omega^* = [N, H]$. Projecting back to the manifold gives the tangent vector:
+$$\mathrm{grad} \Phi(H) = [\Omega^*, H] = [[N, H], H] = [H, [H, N]]$$
+Thus $\dot{H} = \mathrm{grad} \Phi(H)$ is strictly the steepest ascent gradient flow. $\blacksquare$
 
 ---
 
 ### Theorem 3 (Asymptotic Sorting via the Rearrangement Inequality)
-*Suppose $N = \operatorname{diag}(\mu_1, \mu_2, \dots, \mu_n)$ has distinct ordered eigenvalues $\mu_1 < \mu_2 < \dots < \mu_n$. Let $H_0$ have distinct eigenvalues $\lambda_1 < \lambda_2 < \dots < \lambda_n$. Then:*
+*Suppose $N = \mathrm{diag}(\mu_1, \mu_2, \dots, \mu_n)$ has distinct ordered eigenvalues $\mu_1 < \mu_2 < \dots < \mu_n$. Let $H_0$ have distinct eigenvalues $\lambda_1 < \lambda_2 < \dots < \lambda_n$. Then:*
 1. The critical points of $\Phi(H)$ on $\mathcal{O}(H_0)$ consist of all diagonal matrices whose entries are permutations of $\{\lambda_1, \dots, \lambda_n\}$. There are exactly $n!$ isolated critical points.
 2. The global maximum of $\Phi(H)$ is uniquely attained at:
-   $$H^* = \operatorname{diag}(\lambda_1, \lambda_2, \dots, \lambda_n)$$
+   $$H^* = \mathrm{diag}(\lambda_1, \lambda_2, \dots, \lambda_n)$$
 3. The only asymptotically stable equilibrium point of the flow is $H^*$. For almost all initial conditions $H_0$, $H(t)$ converges as $t \to +\infty$ to $H^*$, sorting the eigenvalues in strictly increasing order.
 
 **Proof:**  
-From Theorem 1, critical points satisfy $[H^*, N] = 0$. Since $N$ is diagonal with distinct diagonal entries $\mu_i \ne \mu_j$, any matrix commuting with $N$ must itself be diagonal. Thus $H^* = \operatorname{diag}(\lambda_{\pi(1)}, \dots, \lambda_{\pi(n)})$ for some permutation $\pi \in S_n$.
+From Theorem 1, critical points satisfy $[H^*, N] = 0$. Since $N$ is diagonal with distinct diagonal entries $\mu_i \ne \mu_j$, any matrix commuting with $N$ must itself be diagonal. Thus $H^* = \mathrm{diag}(\lambda_{\pi(1)}, \dots, \lambda_{\pi(n)})$ for some permutation $\pi \in S_n$.
 
 Evaluating the potential at a critical point:
 $$\Phi(H^*) = \sum_{i=1}^n \lambda_{\pi(i)} \mu_i$$
@@ -102,7 +102,7 @@ By the classical **Rearrangement Inequality** (Hardy, Littlewood, and Pólya, 19
 $$\sum_{i=1}^n \lambda_{n-i+1} \mu_i \le \sum_{i=1}^n \lambda_{\pi(i)} \mu_i \le \sum_{i=1}^n \lambda_i \mu_i$$
 with equality if and only if $\pi$ is the identity permutation.
 
-To determine stability, compute the Hessian of $\Phi$ at a critical point $H^* = \operatorname{diag}(\lambda_{\pi(1)}, \dots, \lambda_{\pi(n)})$. For small variations generated by $\Omega_{ij} = E_{ij} - E_{ji} \in \mathfrak{so}(n)$, the second variation is:
+To determine stability, compute the Hessian of $\Phi$ at a critical point $H^* = \mathrm{diag}(\lambda_{\pi(1)}, \dots, \lambda_{\pi(n)})$. For small variations generated by $\Omega_{ij} = E_{ij} - E_{ji} \in \mathfrak{so}(n)$, the second variation is:
 $$\delta^2 \Phi = -(\lambda_{\pi(i)} - \lambda_{\pi(j)})(\mu_i - \mu_j)$$
 For $H^*$ to be a local maximum, the Hessian must be negative definite, requiring:
 $$(\lambda_{\pi(i)} - \lambda_{\pi(j)})(\mu_i - \mu_j) > 0 \quad \forall i < j$$
@@ -113,6 +113,6 @@ Since $\mu_i < \mu_j$ for all $i < j$, this strictly forces $\lambda_{\pi(i)} < 
 ## 4. Algorithmic Applications to List Sorting
 
 To sort an arbitrary unsorted list of real numbers $x = (x_1, x_2, \dots, x_n)$:
-1. Embed $x$ into the diagonal of an initial symmetric matrix $H(0)$ with non-zero off-diagonal couplings (or rotate via an orthogonal matrix $H_0 = Q \operatorname{diag}(x) Q^T$).
+1. Embed $x$ into the diagonal of an initial symmetric matrix $H(0)$ with non-zero off-diagonal couplings (or rotate via an orthogonal matrix $H_0 = Q \mathrm{diag}(x) Q^T$).
 2. Integrate the autonomous ODE $\dot{H} = [H, [H, N]]$ forward in continuous time $t$.
-3. As $t \to +\infty$, the off-diagonal elements decay exponentially to zero, and the diagonal elements $\operatorname{diag}(H(t))$ converge to the sorted list in ascending order.
+3. As $t \to +\infty$, the off-diagonal elements decay exponentially to zero, and the diagonal elements $\mathrm{diag}(H(t))$ converge to the sorted list in ascending order.

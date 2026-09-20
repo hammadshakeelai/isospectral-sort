@@ -77,7 +77,7 @@ isospectral-sort/
 
 Let $x = (x_1, \dots, x_n)$ be an unsorted array. Embed $x$ into an initial symmetric matrix $H(0)$ whose eigenvalues equal $x$. Define the target sorting matrix:
 
-$$N = \operatorname{diag}(1, 2, \dots, n)$$
+$$N = \mathrm{diag}(1, 2, \dots, n)$$
 
 The matrix $H(t)$ evolves according to the double-commutator differential equation:
 
@@ -87,10 +87,10 @@ where $[A, B] = AB - BA$ is the Lie bracket.
 
 #### Key Theorems:
 * **Isospectral Invariance:** $\Omega(t) = [N, H(t)] \in \mathfrak{so}(n)$ is skew-symmetric. Thus $\frac{dH}{dt} = [\Omega, H]$ is an isospectral deformation. The eigenvalues of $H(t)$ are strictly invariant for all $t$.
-* **Gradient Flow:** $\dot{H}$ is the steepest ascent gradient flow of the linear functional $\Phi(H) = \operatorname{Tr}(HN)$ on the adjoint orbit $\mathcal{O}(H_0) \subset \mathcal{S}(n)$.
+* **Gradient Flow:** $\dot{H}$ is the steepest ascent gradient flow of the linear functional $\Phi(H) = \mathrm{Tr}(HN)$ on the adjoint orbit $\mathcal{O}(H_0) \subset \mathcal{S}(n)$.
 * **The Rearrangement Inequality:** The potential $\Phi(H) = \sum_{i=1}^n i \cdot \lambda_{\pi(i)}$ is uniquely maximized if and only if the eigenvalues are arranged in **strictly increasing order**:
   $$\lambda_1 < \lambda_2 < \dots < \lambda_n$$
-* **Asymptotic Equilibrium:** As $t \to +\infty$, off-diagonal elements vanish, and $\operatorname{diag}(H(\infty))$ converges to the sorted array.
+* **Asymptotic Equilibrium:** As $t \to +\infty$, off-diagonal elements vanish, and $\mathrm{diag}(H(\infty))$ converges to the sorted array.
 
 #### Exact Lie-Group Cayley Integration:
 To eliminate floating-point drift and guarantee $O(\epsilon_{\text{mach}})$ eigenvalue conservation, integration is performed via Cayley transforms in $\mathrm{SO}(n)$:
@@ -122,7 +122,7 @@ Under quadratic ground cost $c(x, y) = (x - y)^2$, **Brenier's Polar Factorizati
 
 With entropic regularization, the optimal permutation matrix $P_\varepsilon$ is solved via **Sinkhorn-Knopp matrix-scaling**:
 
-$$P_\varepsilon = \operatorname{diag}(u) \exp(-C / \varepsilon) \operatorname{diag}(v)$$
+$$P_\varepsilon = \mathrm{diag}(u) \exp(-C / \varepsilon) \mathrm{diag}(v)$$
 
 * **Continuous Differentiability:** $P_\varepsilon(x)$ is $C^\infty$ with respect to inputs, allowing backpropagation through ranking operations in PyTorch/deep learning.
 * **Soft vs Hard Sorting:** $s_{\text{soft}} = n P_\varepsilon^T x$ provides continuous differentiable sorting.
@@ -180,7 +180,7 @@ To prevent algorithmic hallucinations and numerical artifacts, the test suite ve
 | :--- | :--- | :--- | :--- |
 | **Isospectral Conservation** | Brockett Theorem 1 (Adjoint Orbit) | $\max_i \|\lambda_i(H(t)) - \lambda_i(H_0)\| < 10^{-10}$ | **PASSED** |
 | **Lyapunov Monotonicity** | $\dot{\Phi}(H) = \|[H, N]\|_F^2 \ge 0$ | $\Phi(t_{k+1}) \ge \Phi(t_k) - 10^{-8}$ | **PASSED** |
-| **Rearrangement Bound** | Hardy-Littlewood-Pólya Inequality | $\operatorname{Tr}(H(\infty)N) = \sum i \cdot x_{(i)}$ | **PASSED** |
+| **Rearrangement Bound** | Hardy-Littlewood-Pólya Inequality | $\mathrm{Tr}(H(\infty)N) = \sum i \cdot x_{(i)}$ | **PASSED** |
 | **Degenerate Spectrum** | Duplicate / identical inputs | Exact multi-set preservation | **PASSED** |
 | **Adverse Negative & Zero** | Mixed signed values | Monotone sign ordering | **PASSED** |
 | **Ill-Conditioned Scales** | Dynamic ratio $> 10^4$ | Rank preconditioning | **PASSED** |

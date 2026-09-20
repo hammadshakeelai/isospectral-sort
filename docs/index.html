@@ -1458,7 +1458,11 @@
                         <button class="paper-btn" onclick="zoomPdf(0.15)">🔍 Zoom In</button>
                         <button class="paper-btn" onclick="fitPdfWidth()">↔ Fit Page Width</button>
                         <button id="btnToggleFullscreen" class="paper-btn" onclick="togglePaperFullscreen()">⛶ Full Page View</button>
-                        <a id="btnDownloadPdf" href="papers/brockett_1991.pdf" target="_blank" class="paper-btn" style="background: rgba(56, 189, 248, 0.15); color: var(--primary);">⬇ Download Original PDF</a>
+                        <a id="btnPublisherLink" href="https://doi.org/10.1016/0024-3795(91)90048-Q" target="_blank" class="paper-btn" style="background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3);" title="Open official publisher article via DOI">🔗 Official DOI Paper</a>
+                        <a id="btnDownloadPdf" href="papers/brockett_1991.pdf" target="_blank" class="paper-btn" style="background: rgba(56, 189, 248, 0.15); color: var(--primary);">⬇ Download PDF</a>
+                        <button class="paper-btn" onclick="document.getElementById('userPdfInput').click()" style="background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3);" title="Upload your downloaded authentic publisher PDF to view immediately">📂 Upload Real PDF</button>
+                        <input type="file" id="userPdfInput" accept="application/pdf" style="display:none;" onchange="if(this.files[0]) handleUserPdfFile(this.files[0])">
+                        <span id="userPdfBadge" style="display:none; font-size:0.75rem; color:#4ade80; background:rgba(34,197,94,0.1); padding:4px 8px; border-radius:4px; border:1px solid rgba(34,197,94,0.2);"></span>
                     </div>
                 </div>
 
@@ -1492,7 +1496,7 @@
                     <div>
                         <div class="paradigm-pill">Lie Bracket Gradient Flow</div>
                         <h3 class="paradigm-title">Roger Brockett Flow (1991)</h3>
-                        <p class="paradigm-desc">Steepest ascent flow of $\Phi(H) = \operatorname{Tr}(HN)$ on the adjoint orbit $\mathcal{O}(H_0)$ of $\mathrm{SO}(n)$. Converges strictly to the unique sorted diagonal matrix via Hardy-Littlewood-Pólya rearrangement inequality.</p>
+                        <p class="paradigm-desc">Steepest ascent flow of $\Phi(H) = \mathrm{Tr}(HN)$ on the adjoint orbit $\mathcal{O}(H_0)$ of $\mathrm{SO}(n)$. Converges strictly to the unique sorted diagonal matrix via Hardy-Littlewood-Pólya rearrangement inequality.</p>
                         <div class="paradigm-math">
                             $$\frac{dH}{dt} = [H, [H, N]] = [[N, H], H]$$
                         </div>
@@ -1510,7 +1514,7 @@
                         <h3 class="paradigm-title">Jürgen Moser Toda Lattice (1975)</h3>
                         <p class="paradigm-desc">Exact Lax equation $\dot{L} = [B, L]$ for $n$ particles interacting via exponential repulsive springs. As $t \to +\infty$, off-diagonal couplings decay exponentially and particles decouple in strictly sorted velocities.</p>
                         <div class="paradigm-math">
-                            $$\frac{dL}{dt} = [B, L], \quad \lim_{t \to \infty} L(t) = \operatorname{diag}(\lambda_1 < \dots < \lambda_n)$$
+                            $$\frac{dL}{dt} = [B, L], \quad \lim_{t \to \infty} L(t) = \mathrm{diag}(\lambda_1 < \dots < \lambda_n)$$
                         </div>
                     </div>
                     <div class="paradigm-action">
@@ -1526,7 +1530,7 @@
                         <h3 class="paradigm-title">Monge-Brenier Optimal Transport (1991)</h3>
                         <p class="paradigm-desc">Brenier's Theorem guarantees that in 1D under quadratic cost, the unique optimal transport map $T = \nabla \Phi$ pushing empirical measure to uniform ranks is the monotone sorting rearrangement. Solved via Sinkhorn-Knopp flow.</p>
                         <div class="paradigm-math">
-                            $$\min_{P \in \mathcal{U}} \langle P, C \rangle - \varepsilon H(P), \quad P^* = \operatorname{diag}(u) K \operatorname{diag}(v)$$
+                            $$\min_{P \in \mathcal{U}} \langle P, C \rangle - \varepsilon H(P), \quad P^* = \mathrm{diag}(u) K \mathrm{diag}(v)$$
                         </div>
                     </div>
                     <div class="paradigm-action">
@@ -2422,7 +2426,7 @@
                     {
                         heading: "1. The Double-Bracket Commutator Equation",
                         content: [
-                            "Let $\operatorname{Sym}(n)$ denote the Lie algebra of $n \times n$ real symmetric matrices. For any fixed symmetric matrix $N \in \operatorname{Sym}(n)$ with distinct diagonal entries $N = \operatorname{diag}(1, 2, \dots, n)$, define the double-bracket differential equation:",
+                            "Let $\mathrm{Sym}(n)$ denote the Lie algebra of $n \times n$ real symmetric matrices. For any fixed symmetric matrix $N \in \mathrm{Sym}(n)$ with distinct diagonal entries $N = \mathrm{diag}(1, 2, \dots, n)$, define the double-bracket differential equation:",
                             "$$\frac{dH}{dt} = [H, [H, N]] = H(HN - NH) - (HN - NH)H$$",
                             "Here $[A, B] = AB - BA$ denotes the standard Lie bracket matrix commutator. Since $[H, N]$ is skew-symmetric, the right-hand side is symmetric whenever $H$ is symmetric."
                         ]
@@ -2431,18 +2435,18 @@
                         heading: "2. Isospectral Invariance and Lie-Group Symmetries",
                         content: [
                             "<strong>Theorem 1 (Exact Isospectral Conservation).</strong> <i>For all $t \ge 0$, the eigenvalues of $H(t)$ are strictly invariant under the flow.</i>",
-                            "<strong>Proof.</strong> Let $k$ be any positive integer. Differentiating the trace $\operatorname{Tr}(H^k)$ yields:",
-                            "$$\frac{d}{dt} \operatorname{Tr}(H^k) = k \operatorname{Tr}(H^{k-1} \dot{H}) = k \operatorname{Tr}(H^{k-1} [H, [H, N]]) = k \operatorname{Tr}([H^{k-1}, H] [H, N]) = 0$$",
-                            "Since the traces of all powers $\operatorname{Tr}(H^k)$ for $k = 1, \dots, n$ are constant, all symmetric polynomial invariants (and therefore all eigenvalues $\lambda_1, \dots, \lambda_n$) are conserved with zero drift: $\max_k |\Delta \lambda_k| = 0$."
+                            "<strong>Proof.</strong> Let $k$ be any positive integer. Differentiating the trace $\mathrm{Tr}(H^k)$ yields:",
+                            "$$\frac{d}{dt} \mathrm{Tr}(H^k) = k \mathrm{Tr}(H^{k-1} \dot{H}) = k \mathrm{Tr}(H^{k-1} [H, [H, N]]) = k \mathrm{Tr}([H^{k-1}, H] [H, N]) = 0$$",
+                            "Since the traces of all powers $\mathrm{Tr}(H^k)$ for $k = 1, \dots, n$ are constant, all symmetric polynomial invariants (and therefore all eigenvalues $\lambda_1, \dots, \lambda_n$) are conserved with zero drift: $\max_k |\Delta \lambda_k| = 0$."
                         ]
                     },
                     {
                         heading: "3. Lyapunov Energy Descent & The Rearrangement Inequality",
                         content: [
-                            "Consider the Brockett potential function $\Phi(H) = \operatorname{Tr}(HN)$. Its derivative along trajectories satisfies:",
-                            "$$\frac{d\Phi}{dt} = \operatorname{Tr}(\dot{H} N) = \operatorname{Tr}([H, [H, N]] N) = \operatorname{Tr}([H, N]^T [H, N]) = 2 \|[H, N]\|_F^2 \ge 0$$",
+                            "Consider the Brockett potential function $\Phi(H) = \mathrm{Tr}(HN)$. Its derivative along trajectories satisfies:",
+                            "$$\frac{d\Phi}{dt} = \mathrm{Tr}(\dot{H} N) = \mathrm{Tr}([H, [H, N]] N) = \mathrm{Tr}([H, N]^T [H, N]) = 2 \|[H, N]\|_F^2 \ge 0$$",
                             "Thus, $\Phi(H)$ is strictly non-decreasing along the flow and stationary if and only if $[H, N] = 0$.",
-                            "<strong>Theorem 2 (Global Convergence to Monotone Sorted Order).</strong> <i>By the Hardy-Littlewood-Pólya rearrangement inequality, the global maximum of $\operatorname{Tr}(HN)$ over the orthogonal similarity orbit $\mathcal{O}(H_0) = \{Q H_0 Q^T : Q \in \mathrm{SO}(n)\}$ occurs uniquely when $H$ is diagonal with diagonal entries sorted in strictly ascending order: $\lambda_1 \le \lambda_2 \le \dots \le \lambda_n$.</i>"
+                            "<strong>Theorem 2 (Global Convergence to Monotone Sorted Order).</strong> <i>By the Hardy-Littlewood-Pólya rearrangement inequality, the global maximum of $\mathrm{Tr}(HN)$ over the orthogonal similarity orbit $\mathcal{O}(H_0) = \{Q H_0 Q^T : Q \in \mathrm{SO}(n)\}$ occurs uniquely when $H$ is diagonal with diagonal entries sorted in strictly ascending order: $\lambda_1 \le \lambda_2 \le \dots \le \lambda_n$.</i>"
                         ]
                     }
                 ]
@@ -2541,7 +2545,7 @@
                         heading: "3. Entropic Regularization & Differentiable Sinkhorn Sorting",
                         content: [
                             "Adding an entropic regularization term $\epsilon \mathcal{H}(P) = -\epsilon \sum_{ij} P_{ij} \log P_{ij}$ converts the non-smooth linear assignment into a smooth, strictly convex optimization solved by Sinkhorn-Knopp fixed-point scaling:",
-                            "$$P = \operatorname{diag}(u) \exp\left(-\frac{C}{\epsilon}\right) \operatorname{diag}(v)$$",
+                            "$$P = \mathrm{diag}(u) \exp\left(-\frac{C}{\epsilon}\right) \mathrm{diag}(v)$$",
                             "As $\epsilon \to 0^+$, $P$ converges to the exact sorting permutation matrix, providing an infinitely differentiable continuous sorting operator."
                         ]
                     }
@@ -2643,7 +2647,51 @@
         const pdfCtx = pdfCanvas ? pdfCanvas.getContext('2d') : null;
         const pdfPageIndicator = document.getElementById('pdfPageIndicator');
         const pdfZoomIndicator = document.getElementById('pdfZoomIndicator');
+        const OFFICIAL_PAPER_LINKS = {
+            brockett: {
+                doiUrl: "https://doi.org/10.1016/0024-3795(91)90048-Q",
+                label: "Elsevier ScienceDirect (1991)"
+            },
+            toda: {
+                doiUrl: "https://doi.org/10.1007/3-540-07171-7_12",
+                label: "SpringerLink (1975)"
+            },
+            ot: {
+                doiUrl: "https://doi.org/10.1002/cpa.3160440402",
+                label: "Wiley CPAM (1991)"
+            },
+            bbs: {
+                doiUrl: "https://doi.org/10.1143/JPSJ.59.3514",
+                label: "JPSJ / J-STAGE (1990)"
+            }
+        };
+
         const btnDownloadPdf = document.getElementById('btnDownloadPdf');
+        const btnPublisherLink = document.getElementById('btnPublisherLink');
+
+        async function handleUserPdfFile(file) {
+            if (!file) return;
+            const fileReader = new FileReader();
+            fileReader.onload = async function() {
+                try {
+                    const typedarray = new Uint8Array(this.result);
+                    if (!window.pdfjsLib) return;
+                    const loadingTask = pdfjsLib.getDocument({ data: typedarray });
+                    pdfViewerState.currentDoc = await loadingTask.promise;
+                    pdfViewerState.totalPages = pdfViewerState.currentDoc.numPages;
+                    pdfViewerState.pageNum = 1;
+                    fitPdfWidth();
+                    const badge = document.getElementById('userPdfBadge');
+                    if (badge) {
+                        badge.style.display = 'inline-flex';
+                        badge.innerText = '✓ Real PDF: ' + file.name;
+                    }
+                } catch (e) {
+                    alert('Error rendering uploaded PDF: ' + e.message);
+                }
+            };
+            fileReader.readAsArrayBuffer(file);
+        }
 
         async function loadPaper(filename, paperKey, btnEl) {
             currentPaperKey = paperKey;
@@ -2653,6 +2701,14 @@
             pdfViewerState.pdfUrl = 'papers/' + filename;
             pdfViewerState.pageNum = 1;
             if (btnDownloadPdf) btnDownloadPdf.href = 'papers/' + filename;
+
+            const pubLink = document.getElementById('btnPublisherLink');
+            if (pubLink && OFFICIAL_PAPER_LINKS[paperKey]) {
+                pubLink.href = OFFICIAL_PAPER_LINKS[paperKey].doiUrl;
+                pubLink.title = "Read official journal publication on " + OFFICIAL_PAPER_LINKS[paperKey].label;
+            }
+            const badge = document.getElementById('userPdfBadge');
+            if (badge) badge.style.display = 'none';
 
             if (currentPaperFormat === 'latex') {
                 renderLatexPaper(paperKey);
@@ -2740,6 +2796,24 @@
             switchCodeAlgo('brockett');
             initMatrixSimulation();
             loadPaper('brockett_1991.pdf', 'brockett', null);
+
+            const dropZone = document.getElementById('paperViewport');
+            if (dropZone) {
+                dropZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    dropZone.style.outline = '2px dashed #4ade80';
+                });
+                dropZone.addEventListener('dragleave', () => {
+                    dropZone.style.outline = 'none';
+                });
+                dropZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    dropZone.style.outline = 'none';
+                    if (e.dataTransfer && e.dataTransfer.files.length > 0) {
+                        handleUserPdfFile(e.dataTransfer.files[0]);
+                    }
+                });
+            }
 
             if (window.renderMathInElement) {
                 renderMathInElement(document.body, {
