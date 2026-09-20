@@ -518,7 +518,7 @@
             color: var(--text-muted);
         }
         .legend-item { display: flex; align-items: center; gap: 6px; }
-        .legend-color { width: 12px; height: 12px; border-radius: 3px; }
+        .legend-color { width: 12px; height: 12px; border-radius: 3px; border: 1px solid rgba(255, 255, 255, 0.25); }
 
         .matrix-telemetry-card {
             background: var(--surface);
@@ -1476,9 +1476,9 @@
                                     <canvas id="matrixCanvas" width="460" height="380"></canvas>
                                 </div>
                                 <div class="matrix-legend">
-                                    <div class="legend-item"><div class="legend-color" style="background:#06b6d4;"></div><span id="matrixLegend1">Diagonal (Values)</span></div>
-                                    <div class="legend-item"><div class="legend-color" style="background:#f43f5e;"></div><span id="matrixLegend2">Off-Diagonal (Coupling → 0)</span></div>
-                                    <div class="legend-item"><div class="legend-color" style="background:#10b981;"></div><span id="matrixLegend3">Sorted Equilibrium</span></div>
+                                    <div class="legend-item"><div class="legend-color" id="matrixLegendColor1" style="background:#06b6d4;"></div><span id="matrixLegend1">Diagonal (Values)</span></div>
+                                    <div class="legend-item"><div class="legend-color" id="matrixLegendColor2" style="background:#f43f5e;"></div><span id="matrixLegend2">Off-Diagonal (Coupling → 0)</span></div>
+                                    <div class="legend-item"><div class="legend-color" id="matrixLegendColor3" style="background:#10b981;"></div><span id="matrixLegend3">Sorted Equilibrium</span></div>
                                 </div>
                             </div>
 
@@ -1508,6 +1508,12 @@
                                         <span style="color:var(--text-muted); font-size:0.72rem;" id="lblSparkSub">E_off(t) → 0</span>
                                     </div>
                                     <canvas id="energyDecayCanvas" width="340" height="90"></canvas>
+                                </div>
+
+                                <!-- What is actually being computed? Card -->
+                                <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 12px; font-size: 0.8rem; line-height: 1.45;">
+                                    <strong style="color: var(--primary); display:block; margin-bottom: 4px;" id="matrixExplanationTitle">Roger Brockett Double-Bracket Lie Flow (1991):</strong>
+                                    <span style="color: #cbd5e1;" id="matrixExplanationText">Input numbers are embedded onto the symmetric matrix adjoint orbit. Continuous time integration of dH/dt = [H, [H, N]] forces off-diagonal commutator energy to zero, leaving sorted eigenvalues on the diagonal.</span>
                                 </div>
                             </div>
                         </div>
@@ -1562,9 +1568,9 @@
                                 <canvas id="secMatrixCanvas" width="500" height="420"></canvas>
                             </div>
                             <div class="matrix-legend">
-                                <div class="legend-item"><div class="legend-color" style="background:#06b6d4;"></div><span id="secMatrixLegend1">Diagonal (Eigenvalues)</span></div>
-                                <div class="legend-item"><div class="legend-color" style="background:#f43f5e;"></div><span id="secMatrixLegend2">Off-Diagonal (Dissipating to 0)</span></div>
-                                <div class="legend-item"><div class="legend-color" style="background:#10b981;"></div><span id="secMatrixLegend3">Equilibrium Orbit</span></div>
+                                <div class="legend-item"><div class="legend-color" id="secMatrixLegendColor1" style="background:#06b6d4;"></div><span id="secMatrixLegend1">Diagonal (Eigenvalues)</span></div>
+                                <div class="legend-item"><div class="legend-color" id="secMatrixLegendColor2" style="background:#f43f5e;"></div><span id="secMatrixLegend2">Off-Diagonal (Dissipating to 0)</span></div>
+                                <div class="legend-item"><div class="legend-color" id="secMatrixLegendColor3" style="background:#10b981;"></div><span id="secMatrixLegend3">Equilibrium Orbit</span></div>
                             </div>
                         </div>
 
@@ -1598,8 +1604,8 @@
 
                             <!-- What is actually being computed? Card -->
                             <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 14px; font-size: 0.82rem; line-height: 1.5;">
-                                <strong style="color: var(--primary); display:block; margin-bottom: 4px;">What is actually being computed?</strong>
-                                <span style="color: #cbd5e1;">Input numbers are embedded onto the symmetric matrix adjoint orbit. Continuous time integration of $\dot{H} = [H, [H, N]]$ forces off-diagonal commutator energy to zero, leaving sorted eigenvalues on the diagonal.</span>
+                                <strong style="color: var(--primary); display:block; margin-bottom: 4px;" id="secMatrixExplanationTitle">Roger Brockett Double-Bracket Lie Flow (1991):</strong>
+                                <span style="color: #cbd5e1;" id="secMatrixExplanationText">Input numbers are embedded onto the symmetric matrix adjoint orbit. Continuous time integration of dH/dt = [H, [H, N]] forces off-diagonal commutator energy to zero, leaving sorted eigenvalues on the diagonal.</span>
                             </div>
                         </div>
                     </div>
@@ -2190,8 +2196,8 @@
 
                     for (let f = 0; f <= TOTAL_FRAMES; f++) {
                         const progress = f / TOTAL_FRAMES;
-                        // Anneal temperature from eps_0 = 1.8 down to eps_min = 0.03
-                        const eps = 1.8 * Math.pow(0.03 / 1.8, progress);
+                        // Anneal temperature from eps_0 = 1.5 down to eps_min = 0.0005
+                        const eps = 1.5 * Math.pow(0.0005 / 1.5, progress);
                         const K = [];
                         for (let i = 0; i < n; i++) {
                             K[i] = [];
@@ -2207,7 +2213,7 @@
 
                         let u = Array(n).fill(1.0);
                         let v = Array(n).fill(1.0);
-                        for (let it = 0; it < 40; it++) {
+                        for (let it = 0; it < 60; it++) {
                             for (let j = 0; j < n; j++) {
                                 let sum = 0;
                                 for (let i = 0; i < n; i++) sum += K[i][j] * u[i];
@@ -2467,8 +2473,8 @@
 
                 for (let s = 0; s <= TOTAL_STEPS; s++) {
                     const progress = s / TOTAL_STEPS;
-                    // Anneal temperature from eps_0 = 1.8 down to eps_min = 0.03
-                    const eps = 1.8 * Math.pow(0.03 / 1.8, progress);
+                    // Anneal temperature from eps_0 = 1.5 down to eps_min = 0.0005
+                    const eps = 1.5 * Math.pow(0.0005 / 1.5, progress);
 
                     // Gibbs Kernel with row-wise log-stabilization
                     const K = [];
@@ -2487,7 +2493,7 @@
                     // Sinkhorn-Knopp scaling
                     let u = Array(n).fill(1.0);
                     let v = Array(n).fill(1.0);
-                    for (let it = 0; it < 50; it++) {
+                    for (let it = 0; it < 60; it++) {
                         for (let j = 0; j < n; j++) {
                             let sum = 0;
                             for (let i = 0; i < n; i++) sum += K[i][j] * u[i];
@@ -2521,9 +2527,19 @@
                         marginalErr += Math.abs(rowSum - 1.0);
                     }
 
+                    // Soft-sorted output vector s_j = sum_i P_ij * initialDiag[i]
+                    const sVec = [];
+                    for (let j = 0; j < n; j++) {
+                        let wSum = 0;
+                        for (let i = 0; i < n; i++) {
+                            wSum += P[i][j] * initialDiag[i];
+                        }
+                        sVec.push(wSum);
+                    }
+
                     // For sparkline: normalized entropy representing thermal dissipation
-                    const maxEntropy = Math.log(n);
-                    const normEntropy = entropy / maxEntropy;
+                    const maxEntropy = n * Math.log(n);
+                    const normEntropy = entropy / Math.max(maxEntropy, 1e-12);
 
                     matrixState.frames.push({
                         step: s,
@@ -2533,7 +2549,9 @@
                         marginalError: marginalErr,
                         offDiagEnergy: normEntropy,
                         commNorm: marginalErr,
-                        lyapunovVal: entropy
+                        lyapunovVal: entropy,
+                        inputValues: [...initialDiag],
+                        softSorted: sVec
                     });
                 }
             } else {
@@ -2588,7 +2606,9 @@
                         matrix: M,
                         offDiagEnergy: offDiagEnergy,
                         commNorm: commNorm,
-                        lyapunovVal: lyapunovVal
+                        lyapunovVal: lyapunovVal,
+                        inputValues: [...initialDiag],
+                        softSorted: targetEvals
                     });
                 }
             }
@@ -2605,7 +2625,7 @@
             const n = matrixState.dim;
             const isOT = matrixState.system === 'ot';
             const stepInfoStr = isOT 
-                ? `Step ${frame.step} / ${matrixState.frames.length - 1} (ε = ${frame.temperature ? frame.temperature.toFixed(4) : '0.03'})`
+                ? `Step ${frame.step} / ${matrixState.frames.length - 1} (ε = ${frame.temperature ? frame.temperature.toFixed(4) : '0.0005'})`
                 : `Step ${frame.step} / ${matrixState.frames.length - 1}`;
 
             const sysTitles = {
@@ -2626,7 +2646,7 @@
             if (secStepInfoEl) secStepInfoEl.innerText = stepInfoStr;
 
             const commValStr = isOT ? (frame.marginalError || 0).toExponential(3) : frame.commNorm.toFixed(6);
-            const offEnergyStr = isOT ? (frame.temperature ? frame.temperature.toFixed(4) : '0.0300') : frame.offDiagEnergy.toFixed(6);
+            const offEnergyStr = isOT ? (frame.temperature ? frame.temperature.toFixed(4) : '0.0005') : frame.offDiagEnergy.toFixed(6);
             const lyapStr = isOT ? (frame.entropy || 0).toFixed(4) : frame.lyapunovVal.toFixed(4);
 
             ['commNormVal', 'secCommNormVal'].forEach(id => {
@@ -2651,9 +2671,14 @@
                 ['driftVal', 'secDriftVal'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "< 1.0 × 10⁻¹² (EXACT CONSERVATION)"; });
                 ['lblSparkTitle', 'secLblSparkTitle'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "Thermal Entropy Annealing Curve"; });
                 ['lblSparkSub', 'secLblSparkSub'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "H(P) → 0 (Permutation Sharpness)"; });
-                ['matrixLegend1', 'secMatrixLegend1'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "Coupling Prob P_ij ≈ 0"; });
-                ['matrixLegend2', 'secMatrixLegend2'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "Diffuse Entropy (P_ij ≈ 1/n)"; });
-                ['matrixLegend3', 'secMatrixLegend3'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "Permutation Peak P_ij → 1"; });
+                
+                ['matrixLegendColor1', 'secMatrixLegendColor1'].forEach(id => { const el = document.getElementById(id); if (el) el.style.background = '#0f172a'; });
+                ['matrixLegendColor2', 'secMatrixLegendColor2'].forEach(id => { const el = document.getElementById(id); if (el) el.style.background = '#06b6d4'; });
+                ['matrixLegendColor3', 'secMatrixLegendColor3'].forEach(id => { const el = document.getElementById(id); if (el) el.style.background = '#10b981'; });
+
+                ['matrixLegend1', 'secMatrixLegend1'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "Near Zero Coupling (P_ij ≈ 0)"; });
+                ['matrixLegend2', 'secMatrixLegend2'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "Diffuse Mixing (P_ij ≈ 1/n)"; });
+                ['matrixLegend3', 'secMatrixLegend3'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "Permutation Peak (P_ij → 1)"; });
             } else {
                 ['lblCommNorm', 'secLblCommNorm'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "Lie Bracket ||[H, N]||_F:"; });
                 ['lblOffDiag', 'secLblOffDiag'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "Off-Diag Energy Σ_{i≠j} H_ij²:"; });
@@ -2662,17 +2687,42 @@
                 ['driftVal', 'secDriftVal'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "< 1.2 × 10⁻¹⁴ (CONSERVED)"; });
                 ['lblSparkTitle', 'secLblSparkTitle'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "Off-Diagonal Energy Dissipation"; });
                 ['lblSparkSub', 'secLblSparkSub'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "E_off(t) → 0"; });
+
+                ['matrixLegendColor1', 'secMatrixLegendColor1'].forEach(id => { const el = document.getElementById(id); if (el) el.style.background = '#06b6d4'; });
+                ['matrixLegendColor2', 'secMatrixLegendColor2'].forEach(id => { const el = document.getElementById(id); if (el) el.style.background = '#f43f5e'; });
+                ['matrixLegendColor3', 'secMatrixLegendColor3'].forEach(id => { const el = document.getElementById(id); if (el) el.style.background = '#10b981'; });
+
                 ['matrixLegend1', 'secMatrixLegend1'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "Diagonal (Values)"; });
                 ['matrixLegend2', 'secMatrixLegend2'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "Off-Diagonal (Coupling → 0)"; });
                 ['matrixLegend3', 'secMatrixLegend3'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = "Sorted Equilibrium"; });
             }
+
+            // Dynamic "What is actually being computed?" Explanation Text
+            const explTitles = {
+                brockett: "Roger Brockett Double-Bracket Lie Flow (1991):",
+                toda: "Jürgen Moser Toda Lattice Flaschka System (1975):",
+                ot: "Marco Cuturi (2013) & Mathieu Blondel (2020) Sinkhorn Optimal Transport:"
+            };
+            const explTexts = {
+                brockett: "Input numbers are embedded on the diagonal of symmetric matrix H(0) ∈ Sym(n). The isospectral commutator ODE dH/dt = [H, [H, N]] dissipates off-diagonal energy to zero via Rayleigh quotient gradient ascent, leaving eigenvalues sorted monotonically on the diagonal while strictly preserving the spectrum.",
+                toda: "Particles with exponential repulsion are mapped to a symmetric tridiagonal Jacobi matrix L(t) via Flaschka coordinates. The Lax equation dL/dt = [B, L] preserves all integrals of motion while couplings b_k(t) decay to zero, sorting the particle asymptotic momenta.",
+                ot: "Sorting is formulated as regularized optimal transport between unsorted inputs x_i and target monotonic ranks r_j with cost C_ij = (x_i - r_j)². As temperature ε anneals to 0, Sinkhorn's doubly stochastic matrix P_ε sharpens from uniform entropy into an exact permutation matrix Π, projecting inputs to sorted order s = Pᵀ x."
+            };
+            ['matrixExplanationTitle', 'secMatrixExplanationTitle'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerText = explTitles[matrixState.system];
+            });
+            ['matrixExplanationText', 'secMatrixExplanationText'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerText = explTexts[matrixState.system];
+            });
 
             // Draw to both matrix canvases
             ['matrixCanvas', 'secMatrixCanvas'].forEach(canvasId => {
                 const mCanvas = document.getElementById(canvasId);
                 if (!mCanvas) return;
                 const mCtx = mCanvas.getContext('2d');
-                drawMatrixOnCanvas(mCanvas, mCtx, frame.matrix, n, frame.step === matrixState.frames.length - 1);
+                drawMatrixOnCanvas(mCanvas, mCtx, frame, n, frame.step === matrixState.frames.length - 1);
             });
 
             // Draw to both dissipation sparklines
@@ -2684,55 +2734,143 @@
             });
         }
 
-        function drawMatrixOnCanvas(cvs, mCtx, M, n, isConverged) {
+        function drawMatrixOnCanvas(cvs, mCtx, frame, n, isConverged) {
             mCtx.clearRect(0, 0, cvs.width, cvs.height);
-            const pad = 16;
-            const gridW = cvs.width - 2 * pad;
-            const gridH = cvs.height - 2 * pad;
-            const cellW = gridW / n;
-            const cellH = gridH / n;
+            const M = frame.matrix;
 
             if (matrixState.system === 'ot') {
-                // Marco Cuturi (2013) Doubly Stochastic Coupling Heatmap
+                const padLeft = 68;   // Space for "x_i = val"
+                const padTop = 26;    // Space for "Rank j"
+                const padBottom = 34; // Space for "s_j = val"
+                const padRight = 12;
+
+                const gridW = cvs.width - padLeft - padRight;
+                const gridH = cvs.height - padTop - padBottom;
+                const cellW = gridW / n;
+                const cellH = gridH / n;
+
+                const inputVals = frame.inputValues || [];
+                const softSorted = frame.softSorted || [];
+
+                // 1. Column Headers (Top): "Rank 0", "Rank 1", etc.
+                mCtx.textAlign = 'center';
+                mCtx.textBaseline = 'middle';
+                mCtx.font = `700 ${Math.max(9, Math.min(11, cellW / 4.5))}px 'JetBrains Mono', monospace`;
+                for (let j = 0; j < n; j++) {
+                    const cx = padLeft + j * cellW + cellW / 2;
+                    mCtx.fillStyle = '#38bdf8';
+                    mCtx.fillText(`Rank ${j}`, cx, padTop / 2 + 2);
+                }
+
+                // 2. Row Headers (Left): "x0=40.6"
+                mCtx.textAlign = 'right';
+                for (let i = 0; i < n; i++) {
+                    const cy = padTop + i * cellH + cellH / 2;
+                    const valStr = inputVals[i] !== undefined ? inputVals[i].toFixed(1) : `${i}`;
+                    mCtx.fillStyle = '#94a3b8';
+                    mCtx.font = `600 ${Math.max(9, Math.min(11, cellH / 3.8))}px 'JetBrains Mono', monospace`;
+                    mCtx.fillText(`x${i}=${valStr}`, padLeft - 6, cy);
+                }
+
+                // 3. Coupling Matrix Cells P_ij
                 for (let i = 0; i < n; i++) {
                     for (let j = 0; j < n; j++) {
-                        const x = pad + j * cellW;
-                        const y = pad + i * cellH;
+                        const x = padLeft + j * cellW;
+                        const y = padTop + i * cellH;
                         const prob = Math.min(1.0, Math.max(0.0, M[i][j]));
 
-                        // Colormap: glowing cyan/emerald for high probability, dark slate for 0
-                        const isPeak = prob > 0.45;
-                        mCtx.fillStyle = isConverged && isPeak
-                            ? `rgba(16, 185, 129, ${Math.max(0.08, prob * 0.95)})`
-                            : `rgba(6, 182, 212, ${Math.max(0.06, prob * 0.9)})`;
-                        mCtx.strokeStyle = isPeak ? '#38bdf8' : 'rgba(255, 255, 255, 0.07)';
-                        mCtx.lineWidth = isPeak ? 1.6 : 0.8;
+                        // 3-tier color coding:
+                        // Tier 1: prob < 0.05 -> near zero coupling (dark slate)
+                        // Tier 2: 0.05 <= prob <= 0.40 -> diffuse mixing (translucent cyan)
+                        // Tier 3: prob > 0.40 -> permutation peak (glowing emerald green)
+                        if (prob > 0.40) {
+                            mCtx.fillStyle = `rgba(16, 185, 129, ${Math.max(0.25, prob * 0.95)})`;
+                            mCtx.strokeStyle = '#34d399';
+                            mCtx.lineWidth = 1.8;
+                        } else if (prob >= 0.05) {
+                            mCtx.fillStyle = `rgba(6, 182, 212, ${Math.max(0.12, prob * 1.5)})`;
+                            mCtx.strokeStyle = 'rgba(6, 182, 212, 0.6)';
+                            mCtx.lineWidth = 1.0;
+                        } else {
+                            mCtx.fillStyle = 'rgba(15, 23, 42, 0.65)';
+                            mCtx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+                            mCtx.lineWidth = 0.8;
+                        }
 
                         mCtx.beginPath();
-                        mCtx.roundRect(x + 2, y + 2, cellW - 4, cellH - 4, 6);
+                        mCtx.roundRect(x + 2, y + 2, cellW - 4, cellH - 4, 5);
                         mCtx.fill();
                         mCtx.stroke();
 
-                        if (cellW >= 36) {
-                            mCtx.fillStyle = isPeak ? '#ffffff' : (prob > 0.1 ? '#94a3b8' : '#475569');
-                            mCtx.font = `600 ${Math.max(9, Math.min(13, cellW / 3.6))}px 'JetBrains Mono', monospace`;
+                        if (cellW >= 32) {
+                            if (prob > 0.40) {
+                                mCtx.fillStyle = '#ffffff';
+                            } else if (prob >= 0.05) {
+                                mCtx.fillStyle = '#a5f3fc';
+                            } else {
+                                mCtx.fillStyle = '#475569';
+                            }
+                            mCtx.font = `600 ${Math.max(9, Math.min(12, cellW / 3.8))}px 'JetBrains Mono', monospace`;
                             mCtx.textAlign = 'center';
                             mCtx.textBaseline = 'middle';
                             mCtx.fillText(prob.toFixed(2), x + cellW / 2, y + cellH / 2);
                         }
                     }
                 }
+
+                // 4. Soft-Sorted Outputs (Bottom Footer): "s_j = P^T x"
+                mCtx.textAlign = 'center';
+                mCtx.textBaseline = 'middle';
+                for (let j = 0; j < n; j++) {
+                    const cx = padLeft + j * cellW + cellW / 2;
+                    const sVal = softSorted[j] !== undefined ? softSorted[j].toFixed(1) : '';
+                    mCtx.fillStyle = isConverged ? '#4ade80' : '#38bdf8';
+                    mCtx.font = `700 ${Math.max(9, Math.min(11, cellW / 4.2))}px 'JetBrains Mono', monospace`;
+                    mCtx.fillText(`s${j}=${sVal}`, cx, cvs.height - padBottom / 2 + 2);
+                }
+
+                // Formula label on bottom-left
+                mCtx.textAlign = 'right';
+                mCtx.fillStyle = '#64748b';
+                mCtx.font = `600 9px 'JetBrains Mono', monospace`;
+                mCtx.fillText("s=Pᵀx →", padLeft - 6, cvs.height - padBottom / 2 + 2);
+
                 return;
+            }
+
+            // Brockett & Toda Matrix Display
+            const padLeft = 32;
+            const padTop = 24;
+            const padBottom = 16;
+            const padRight = 16;
+            const gridW = cvs.width - padLeft - padRight;
+            const gridH = cvs.height - padTop - padBottom;
+            const cellW = gridW / n;
+            const cellH = gridH / n;
+
+            // Column indices on top
+            mCtx.textAlign = 'center';
+            mCtx.textBaseline = 'middle';
+            mCtx.font = `600 10px 'JetBrains Mono', monospace`;
+            mCtx.fillStyle = '#64748b';
+            for (let j = 0; j < n; j++) {
+                mCtx.fillText(`[${j}]`, padLeft + j * cellW + cellW / 2, padTop / 2 + 2);
+            }
+
+            // Row indices on left
+            mCtx.textAlign = 'right';
+            for (let i = 0; i < n; i++) {
+                mCtx.fillText(`[${i}]`, padLeft - 6, padTop + i * cellH + cellH / 2);
             }
 
             for (let i = 0; i < n; i++) {
                 for (let j = 0; j < n; j++) {
-                    const x = pad + j * cellW;
-                    const y = pad + i * cellH;
+                    const x = padLeft + j * cellW;
+                    const y = padTop + i * cellH;
                     const val = M[i][j];
 
                     if (i === j) {
-                        // Diagonal element: sorted values
+                        // Diagonal element: sorted eigenvalues
                         mCtx.fillStyle = isConverged ? 'rgba(16, 185, 129, 0.25)' : 'rgba(6, 182, 212, 0.22)';
                         mCtx.strokeStyle = isConverged ? '#10b981' : '#06b6d4';
                         mCtx.lineWidth = 1.8;
@@ -2750,7 +2888,7 @@
                     mCtx.stroke();
 
                     // Print numerical values inside cells
-                    if (cellW >= 42) {
+                    if (cellW >= 36) {
                         mCtx.fillStyle = (i === j) ? '#ffffff' : (Math.abs(val) > 0.05 ? '#cbd5e1' : '#64748b');
                         mCtx.font = `600 ${Math.max(9, Math.min(13, cellW / 3.8))}px 'JetBrains Mono', monospace`;
                         mCtx.textAlign = 'center';
