@@ -1,15 +1,25 @@
-# IsospectralSort (Continuous Dynamical & Geometric Sorting Systems)
+# IsospectralSort: Continuous Dynamical & Geometric Sorting Systems
 
-[![Tests](https://img.shields.io/badge/tests-65%20passed%20(100%25)-success?style=for-the-badge&logo=pytest)](tests/)
+[![Tests](https://img.shields.io/badge/tests-99%20passed%20(100%25)-success?style=for-the-badge&logo=pytest)](tests/)
 [![Python](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue?style=for-the-badge&logo=python)](pyproject.toml)
 [![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)](LICENSE)
 [![Mathematics](https://img.shields.io/badge/pure-mathematics-indigo?style=for-the-badge&logo=latex)](papers/)
+[![Live Demo](https://img.shields.io/badge/web-live%20simulator-0284c7?style=for-the-badge&logo=googlechrome)](https://hammadshakeelai.github.io/isospectral-sort/)
 
 <p align="center">
-  <img src="assets/banner.png" alt="IsospectralSort Banner" width="100%" />
+  <img src="assets/isospectral_hero_banner.jpg" alt="IsospectralSort Hero Banner" width="100%" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" />
 </p>
 
 > **A production-grade Python package and research suite implementing the continuous, physical, and geometric sorting algorithms of pure mathematics — completely devoid of discrete comparisons, branch conditions, or pairwise swaps.**
+
+---
+
+<details>
+<summary><b>🖼️ View System Architecture & Theoretical Overview Banner</b></summary>
+<p align="center">
+  <img src="assets/banner.png" alt="IsospectralSort Theoretical Architecture Banner" width="100%" />
+</p>
+</details>
 
 ---
 

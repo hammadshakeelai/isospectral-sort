@@ -119,9 +119,16 @@ def toda_sort(
     diagnostics : TodaDiagnostics (optional)
         Convergence and trajectory metrics.
     """
+    # Red-team input validation
+    if dt is not None and dt <= 0:
+        raise ValueError(f"dt must be positive, got {dt}")
+    if max_steps <= 0:
+        raise ValueError(f"max_steps must be a positive integer, got {max_steps}")
+    if tol <= 0:
+        raise ValueError(f"tol must be positive, got {tol}")
+
     vals = np.asarray(values, dtype=float)
     
-    # Red-team input validation
     if vals.ndim != 1:
         raise ValueError(f"Input must be a 1-dimensional array, got {vals.ndim}D shape {vals.shape}")
     if not np.all(np.isfinite(vals)):
@@ -159,7 +166,8 @@ def toda_sort(
             return vals.copy(), diag
         return vals.copy()
 
-    # Preconditioning for extreme condition numbers
+    # Dynamic range conditioning: when spectrum condition number spans > 1000:1,
+    # map to rank-space to prevent IEEE 754 floating-point underflow/cancellation.
     if precondition == "auto":
         sorted_copy = np.sort(vals)
         diffs = np.diff(sorted_copy)

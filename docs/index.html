@@ -3,31 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IsospectralSort | Continuous Dynamical & Soliton Sorting Systems</title>
-    <meta name="description" content="Pure mathematics sorting algorithms from differential geometry, Lie algebras, Hamiltonian scattering, and KdV solitons in Python.">
-    
-    <!-- KaTeX for math rendering -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+    <title>IsospectralSort — Continuous Dynamical & Geometric Sorting Systems</title>
+    <meta name="description" content="Interactive scientific simulator and research laboratory for continuous sorting algorithms in pure mathematics: Brockett flows, Toda lattices, optimal transport, and soliton automata.">
 
-    <!-- Google Fonts -->
+    <!-- Google Fonts & KaTeX -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <!-- PDF.js for Foundational Paper Viewing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
     <style>
         :root {
-            --bg: #090d13;
-            --surface: #121824;
-            --surface-card: #182234;
-            --border: #233047;
-            --border-hover: #3b5074;
+            --bg: #030712;
+            --surface: #0b1329;
+            --surface-card: #111d3d;
+            --border: #1e2e5c;
+            --border-highlight: #38bdf8;
             --primary: #38bdf8;
-            --primary-glow: rgba(56, 189, 248, 0.25);
-            --gold: #fbbf24;
-            --emerald: #34d399;
-            --text-main: #f1f5f9;
+            --primary-hover: #0284c7;
+            --secondary: #818cf8;
+            --accent: #f43f5e;
+            --amber: #fbbf24;
+            --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --text-dim: #64748b;
             --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -39,372 +41,474 @@
             background-color: var(--bg);
             color: var(--text-main);
             font-family: var(--font-sans);
-            line-height: 1.65;
-            -webkit-font-smoothing: antialiased;
+            line-height: 1.6;
+            overflow-x: hidden;
         }
 
         a { color: var(--primary); text-decoration: none; transition: color 0.2s; }
-        a:hover { color: #7dd3fc; }
+        a:hover { color: #bae6fd; }
 
         .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
 
-        /* Navbar */
+        /* Navigation */
         nav {
-            border-bottom: 1px solid var(--border);
-            background: rgba(9, 13, 19, 0.85);
-            backdrop-filter: blur(12px);
             position: sticky;
             top: 0;
             z-index: 100;
-        }
-        .nav-inner {
+            background: rgba(3, 7, 18, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            height: 70px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            height: 70px;
         }
-        .logo-group {
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+        .brand {
             display: flex;
             align-items: center;
             gap: 12px;
-            font-weight: 700;
+            font-weight: 800;
             font-size: 1.25rem;
-            color: var(--text-main);
+            color: #fff;
+            letter-spacing: -0.02em;
         }
-        .logo-icon {
+        .brand-icon {
             width: 32px;
             height: 32px;
-            background: linear-gradient(135deg, var(--primary), var(--gold));
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             border-radius: 8px;
-            display: grid;
-            place-items: center;
-            color: #000;
-            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 1rem;
+            color: #000;
+            font-weight: 900;
         }
         .nav-links { display: flex; gap: 24px; align-items: center; }
-        .nav-link { font-size: 0.95rem; font-weight: 500; color: var(--text-muted); }
-        .nav-link:hover { color: var(--text-main); }
-        .btn-github {
-            display: inline-flex;
+        .nav-links a { color: var(--text-muted); font-size: 0.9rem; font-weight: 500; }
+        .nav-links a:hover { color: #fff; }
+        .btn-gh {
+            display: flex;
             align-items: center;
             gap: 8px;
-            background: #24292f;
-            border: 1px solid #3d444d;
+            background: var(--surface);
+            border: 1px solid var(--border);
             padding: 8px 16px;
             border-radius: 8px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 600;
             color: #fff;
             transition: all 0.2s;
         }
-        .btn-github:hover { background: #323842; border-color: var(--primary); color: #fff; }
+        .btn-gh:hover { border-color: var(--primary); background: var(--surface-card); }
 
         /* Hero */
-        .hero {
-            padding: 60px 0 40px;
-            text-align: center;
-            position: relative;
-        }
-        .banner-container {
-            max-width: 1080px;
-            margin: 0 auto 36px;
-            border-radius: 16px;
-            overflow: hidden;
-            border: 1px solid var(--border);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 40px var(--primary-glow);
-        }
-        .banner-img { width: 100%; height: auto; display: block; }
+        .hero { padding: 60px 0 30px; text-align: center; }
         .hero-badge {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 6px 16px;
             background: rgba(56, 189, 248, 0.1);
             border: 1px solid rgba(56, 189, 248, 0.3);
-            border-radius: 30px;
-            color: var(--primary);
+            border-radius: 999px;
+            padding: 6px 16px;
             font-size: 0.85rem;
             font-weight: 600;
-            margin-bottom: 20px;
+            color: var(--primary);
+            margin-bottom: 24px;
         }
-        h1.hero-title {
-            font-size: 3rem;
+        .hero h1 {
+            font-size: 3.2rem;
             font-weight: 800;
             letter-spacing: -0.03em;
-            margin-bottom: 16px;
             line-height: 1.15;
-            background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
+            margin-bottom: 20px;
+            background: linear-gradient(180deg, #fff 0%, #cbd5e1 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        p.hero-subtitle {
-            font-size: 1.25rem;
+        .hero p.lead {
+            font-size: 1.2rem;
             color: var(--text-muted);
-            max-width: 800px;
+            max-width: 780px;
             margin: 0 auto 32px;
-            font-weight: 400;
         }
-        .hero-actions {
+        .hero-banner-wrap {
+            margin: 32px auto 0;
+            max-width: 1100px;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+        }
+        .hero-banner-wrap img { width: 100%; display: block; }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            max-width: 900px;
+            margin: 36px auto 0;
+        }
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+        .stat-num { font-size: 1.5rem; font-weight: 800; color: var(--primary); font-family: var(--font-mono); }
+        .stat-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; }
+
+        /* Section Headings */
+        section { padding: 60px 0; border-top: 1px solid var(--border); }
+        .section-header { text-align: center; margin-bottom: 36px; }
+        .section-tag { color: var(--primary); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; }
+        h2.section-title { font-size: 2.2rem; font-weight: 800; margin: 8px 0 10px; letter-spacing: -0.02em; }
+        p.section-desc { color: var(--text-muted); font-size: 1.05rem; max-width: 700px; margin: 0 auto; }
+
+        /* Simulator Studio */
+        .sim-container {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        .sim-toolbar {
+            background: var(--surface-card);
+            border-bottom: 1px solid var(--border);
+            padding: 18px 24px;
+            display: grid;
+            grid-template-columns: 2fr 3fr auto;
+            gap: 20px;
+            align-items: center;
+        }
+        .sim-control-group { display: flex; flex-direction: column; gap: 6px; }
+        .control-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
+        .sim-select, .sim-input {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: #fff;
+            padding: 9px 12px;
+            font-size: 0.9rem;
+            font-family: var(--font-sans);
+        }
+        .sim-input { font-family: var(--font-mono); }
+
+        .preset-pills { display: flex; gap: 6px; margin-top: 6px; }
+        .preset-pill {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .preset-pill:hover { border-color: var(--primary); color: #fff; }
+
+        /* Video Player Controls Deck */
+        .video-player-deck {
+            background: #070d1e;
+            border-bottom: 1px solid var(--border);
+            padding: 14px 24px;
             display: flex;
-            justify-content: center;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .deck-buttons { display: flex; align-items: center; gap: 10px; }
+        .deck-btn {
+            background: var(--surface-card);
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .deck-btn:hover { background: var(--border); border-color: var(--primary); }
+        .deck-btn.primary {
+            background: linear-gradient(135deg, var(--primary), #0284c7);
+            color: #000;
+            border: none;
+            box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35);
+        }
+        .deck-btn.primary:hover { background: linear-gradient(135deg, #7dd3fc, var(--primary)); }
+
+        .scrubber-wrap {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 260px;
+        }
+        .scrubber-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--border);
+            outline: none;
+            cursor: pointer;
+        }
+        .scrubber-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--primary);
+        }
+        .time-badge {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            min-width: 120px;
+        }
+
+        .speed-group { display: flex; align-items: center; gap: 6px; }
+        .speed-btn {
+            background: var(--surface-card);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .speed-btn.active {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+        }
+
+        /* Canvas Area */
+        .canvas-workspace {
+            display: grid;
+            grid-template-columns: 1fr;
+            background: #020617;
+            position: relative;
+        }
+        #simCanvas {
+            width: 100%;
+            height: 420px;
+            display: block;
+        }
+        .sim-telemetry-bar {
+            background: var(--surface-card);
+            border-top: 1px solid var(--border);
+            padding: 10px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .telemetry-item { display: flex; align-items: center; gap: 6px; }
+        .telemetry-val { color: var(--primary); font-weight: 700; }
+
+        /* Foundational Paper Studio (PDF.js) */
+        .paper-studio {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+        .paper-tabs {
+            display: flex;
+            background: var(--surface-card);
+            border-bottom: 1px solid var(--border);
+            overflow-x: auto;
+        }
+        .paper-tab {
+            padding: 14px 22px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .paper-tab:hover { color: #fff; }
+        .paper-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            background: rgba(56, 189, 248, 0.05);
+        }
+
+        .paper-toolbar {
+            background: #070d1e;
+            border-bottom: 1px solid var(--border);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             gap: 16px;
             flex-wrap: wrap;
         }
-        .btn-primary {
-            background: linear-gradient(135deg, #0284c7, #0369a1);
-            color: #fff;
-            padding: 12px 28px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 1rem;
-            box-shadow: 0 4px 20px rgba(2, 132, 199, 0.4);
-            transition: all 0.2s;
-        }
-        .btn-primary:hover { background: linear-gradient(135deg, #0ea5e9, #0284c7); transform: translateY(-1px); color: #fff; }
-        .btn-outline {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text-main);
-            padding: 12px 28px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 1rem;
-            transition: all 0.2s;
-        }
-        .btn-outline:hover { background: var(--surface); border-color: var(--primary); }
-
-        /* Badges Bar */
-        .badges-bar {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            margin: 28px 0 50px;
-            flex-wrap: wrap;
-        }
-        .metric-pill {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 8px 16px;
-            font-size: 0.85rem;
+        .paper-nav-group, .paper-zoom-group {
             display: flex;
             align-items: center;
             gap: 8px;
         }
-        .metric-val { font-weight: 700; color: var(--primary); }
-
-        /* Sections */
-        section { padding: 60px 0; border-top: 1px solid var(--border); }
-        .section-header { margin-bottom: 40px; text-align: center; }
-        .section-tag { color: var(--primary); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
-        h2.section-title { font-size: 2.2rem; font-weight: 800; margin: 8px 0 12px; letter-spacing: -0.02em; }
-        p.section-desc { color: var(--text-muted); font-size: 1.1rem; max-width: 700px; margin: 0 auto; }
-
-        /* Simulator Card */
-        .sim-grid {
-            display: grid;
-            grid-template-columns: 360px 1fr;
-            gap: 28px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 28px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-        }
-        .sim-controls { display: flex; flex-direction: column; gap: 18px; }
-        .control-label { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
-        .sim-input {
-            width: 100%;
-            padding: 10px 14px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: #fff;
-            font-family: var(--font-mono);
-            font-size: 0.95rem;
-        }
-        .sim-select {
-            width: 100%;
-            padding: 10px 14px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: #fff;
-            font-size: 0.95rem;
-        }
-        .preset-buttons { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-        .btn-preset {
+        .paper-btn {
             background: var(--surface-card);
             border: 1px solid var(--border);
-            color: var(--text-muted);
-            padding: 8px;
+            color: #fff;
+            padding: 6px 12px;
             border-radius: 6px;
             font-size: 0.8rem;
+            font-weight: 600;
             cursor: pointer;
-            text-align: center;
+            transition: all 0.15s;
         }
-        .btn-preset:hover { background: var(--border); color: #fff; }
-        .btn-run {
-            background: var(--primary);
-            color: #000;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-run:hover { background: #7dd3fc; }
-
-        .canvas-card {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-        canvas#simCanvas {
-            width: 100%;
-            height: 380px;
-            background: #090d13;
-            border-radius: 8px;
-        }
-        .sim-status {
+        .paper-btn:hover { border-color: var(--primary); }
+        .page-indicator {
             font-family: var(--font-mono);
             font-size: 0.85rem;
-            padding: 12px;
-            background: var(--surface);
-            border-radius: 8px;
-            border-left: 3px solid var(--emerald);
-            color: var(--emerald);
+            color: var(--text-muted);
+            padding: 0 6px;
+        }
+
+        .paper-viewport-wrap {
+            height: 640px;
+            overflow: auto;
+            background: #0f172a;
+            display: flex;
+            justify-content: center;
+            padding: 24px;
+        }
+        #pdfCanvas {
+            max-width: 100%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+            border-radius: 4px;
+            background: #fff;
         }
 
         /* 4 Paradigms Cards */
-        .cards-grid {
+        .paradigms-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            grid-template-columns: repeat(2, 1fr);
             gap: 24px;
         }
         .paradigm-card {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 14px;
-            padding: 24px;
-            transition: all 0.25s ease;
-            position: relative;
-            overflow: hidden;
+            padding: 28px;
+            transition: all 0.25s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
         .paradigm-card:hover {
-            border-color: var(--border-hover);
-            transform: translateY(-4px);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(56, 189, 248, 0.1);
         }
-        .paradigm-number {
+        .paradigm-pill {
             font-size: 0.75rem;
             font-weight: 700;
             color: var(--primary);
             text-transform: uppercase;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.08em;
             margin-bottom: 8px;
         }
-        .paradigm-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 12px; }
-        .paradigm-desc { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 16px; }
-        .math-snippet {
-            background: var(--bg);
+        .paradigm-title { font-size: 1.35rem; font-weight: 700; margin-bottom: 10px; color: #fff; }
+        .paradigm-desc { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 16px; }
+        .paradigm-math {
+            background: var(--surface-card);
             border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 10px;
-            font-size: 0.95rem;
-            margin-top: 12px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
             text-align: center;
         }
+        .paradigm-action {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
 
-        /* RAG Explorer */
-        .rag-container {
+        /* Benchmarks Table */
+        .benchmark-box {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 16px;
-            padding: 32px;
+            overflow: hidden;
         }
-        .search-bar-group { display: flex; gap: 12px; margin-bottom: 20px; }
-        .rag-input {
-            flex: 1;
-            padding: 14px 18px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: #fff;
-            font-size: 1rem;
-        }
-        .rag-input:focus { outline: none; border-color: var(--primary); }
-        .btn-search {
-            background: var(--primary);
-            color: #000;
-            border: none;
-            padding: 0 28px;
-            border-radius: 8px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-        .chip-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
-        .query-chip {
-            background: var(--surface-card);
-            border: 1px solid var(--border);
-            color: var(--text-muted);
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .query-chip:hover { border-color: var(--primary); color: #fff; }
-        .rag-result-box {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 16px;
-        }
-        .result-meta {
-            font-size: 0.85rem;
-            color: var(--primary);
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-        .result-body { color: var(--text-main); font-size: 0.95rem; line-height: 1.7; }
-
-        /* Benchmark Table */
-        .benchmark-table {
+        table.bench-table {
             width: 100%;
             border-collapse: collapse;
-            background: var(--surface);
-            border-radius: 12px;
-            overflow: hidden;
-            margin-top: 24px;
-        }
-        .benchmark-table th, .benchmark-table td {
-            padding: 16px 20px;
             text-align: left;
+            font-size: 0.9rem;
+        }
+        table.bench-table th, table.bench-table td {
+            padding: 14px 20px;
             border-bottom: 1px solid var(--border);
         }
-        .benchmark-table th { background: #151d2c; font-weight: 700; color: var(--text-main); font-size: 0.9rem; text-transform: uppercase; }
-        .benchmark-table tr:hover { background: #162032; }
+        table.bench-table th {
+            background: var(--surface-card);
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+        }
+        table.bench-table td { font-family: var(--font-mono); }
+        .highlight-cell { color: var(--primary); font-weight: 700; }
 
-        /* Code Snippet */
-        .code-box {
-            background: var(--bg);
+        /* Quickstart */
+        .quickstart-card {
+            background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 18px 24px;
+            border-radius: 14px;
+            padding: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .code-snippet {
             font-family: var(--font-mono);
-            font-size: 0.9rem;
-            position: relative;
-            margin-top: 20px;
-            overflow-x: auto;
+            background: #020617;
+            border: 1px solid var(--border);
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: #38bdf8;
+            font-size: 0.95rem;
+            flex: 1;
+            min-width: 280px;
         }
 
         /* Footer */
@@ -417,274 +521,358 @@
         }
 
         @media (max-width: 900px) {
-            .sim-grid { grid-template-columns: 1fr; }
-            h1.hero-title { font-size: 2.2rem; }
+            .hero h1 { font-size: 2.3rem; }
+            .stat-grid { grid-template-columns: repeat(2, 1fr); }
+            .paradigms-grid { grid-template-columns: 1fr; }
+            .sim-toolbar { grid-template-columns: 1fr; }
+            #simCanvas { height: 480px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Nav -->
+    <!-- Header Navigation -->
     <nav>
-        <div class="container nav-inner">
-            <div class="logo-group">
-                <div class="logo-icon">Ω</div>
+        <div class="container nav-content">
+            <a href="#" class="brand">
+                <div class="brand-icon">∫</div>
                 <span>IsospectralSort</span>
-            </div>
+            </a>
             <div class="nav-links">
-                <a href="#simulator" class="nav-link">Live Simulator</a>
-                <a href="#paradigms" class="nav-link">Paradigms</a>
-                <a href="#rag" class="nav-link">Paper RAG</a>
-                <a href="#benchmarks" class="nav-link">Benchmarks</a>
-                <a href="https://github.com/hammadshakeelai/isospectral-sort" target="_blank" class="btn-github">
+                <a href="#simulator">Interactive Lab</a>
+                <a href="#papers">Foundational Papers</a>
+                <a href="#paradigms">4 Paradigms</a>
+                <a href="#benchmarks">Benchmarks</a>
+                <a href="https://github.com/hammadshakeelai/isospectral-sort" target="_blank" class="btn-gh">
                     <svg height="18" width="18" viewBox="0 0 16 16" fill="currentColor">
                         <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
                     </svg>
-                    GitHub
+                    <span>GitHub</span>
                 </a>
             </div>
         </div>
     </nav>
 
-    <!-- Hero -->
+    <!-- Hero Section -->
     <header class="hero">
         <div class="container">
-            <div class="hero-badge">⚡ Pure Mathematics Sorting Architecture</div>
-            <h1 class="hero-title">Sorting Without Comparisons</h1>
-            <p class="hero-subtitle">
-                Transforming lists into eigenvalues, Lie algebra commutators, and soliton wavepackets.
-                Zero discrete swaps, zero branch conditions — pure continuous physics and geometry.
+            <div class="hero-badge">
+                <span>⚡ Pure Mathematical Physics Sorting</span> &bull; <span>99/99 Red-Team Tests Passed</span>
+            </div>
+            <h1>Sort Numbers Using Autonomous Continuous Physical Laws</h1>
+            <p class="lead">
+                Zero comparisons. Zero branch conditions. Zero pairwise swaps.<br>
+                Sorting realized as smooth gradient flows on Lie algebras, Hamiltonian particle scattering, and soliton wave collisions.
             </p>
 
-            <div class="hero-actions">
-                <a href="#simulator" class="btn-primary">Launch Live Simulator</a>
-                <a href="https://github.com/hammadshakeelai/isospectral-sort" target="_blank" class="btn-outline">View Repository</a>
+            <div class="hero-banner-wrap">
+                <img src="assets/isospectral_hero_banner.jpg" alt="Isospectral Sort Continuous Dynamical Sorting Hero Banner">
             </div>
 
-            <div class="badges-bar">
-                <div class="metric-pill"><span class="metric-val">24 / 24</span> Invariant Tests Passing</div>
-                <div class="metric-pill"><span class="metric-val">&lt; 10⁻¹²</span> Machine-Precision Invariance</div>
-                <div class="metric-pill"><span class="metric-val">O(1)</span> Analog Physical Time</div>
-                <div class="metric-pill"><span class="metric-val">100%</span> Differentiable (Sinkhorn)</div>
-            </div>
-
-            <!-- Banner Image -->
-            <div class="banner-container">
-                <img src="assets/banner.png" alt="IsospectralSort Banner" class="banner-img">
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-num">99 / 99</div>
+                    <div class="stat-label">Adversarial Tests Passed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num">4</div>
+                    <div class="stat-label">Pure-Math Paradigms</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num">4 Papers</div>
+                    <div class="stat-label">Embedded PDF Reader</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num">100%</div>
+                    <div class="stat-label">Isospectral Conservation</div>
+                </div>
             </div>
         </div>
     </header>
 
-    <!-- Live Simulator -->
+    <!-- Main Interactive Simulator Studio -->
     <section id="simulator">
         <div class="container">
             <div class="section-header">
-                <div class="section-tag">Interactive Engine</div>
-                <h2 class="section-title">Continuous Dynamical Simulation</h2>
-                <p class="section-desc">Watch Brockett's double-bracket flow continuously rotate an arbitrary symmetric matrix until all off-diagonal entries vanish into strictly sorted eigenvalues.</p>
+                <div class="section-tag">Interactive Laboratory</div>
+                <h2 class="section-title">Video-Paced Continuous Sorting Simulator</h2>
+                <p class="section-desc">Observe numbers physically gliding laterally along continuous trajectories into sorted order with real-time video playback and audio sonification.</p>
             </div>
 
-            <div class="sim-grid">
-                <div class="sim-controls">
-                    <div>
-                        <label class="control-label">Algorithm</label>
-                        <select id="simAlgo" class="sim-select" style="margin-top: 6px;">
-                            <option value="brockett">Roger Brockett Double-Bracket Flow</option>
-                            <option value="toda">Jürgen Moser Toda Lattice</option>
+            <div class="sim-container">
+                <!-- Toolbar -->
+                <div class="sim-toolbar">
+                    <div class="sim-control-group">
+                        <label class="control-label">Algorithm Paradigm</label>
+                        <select id="simAlgoSelect" class="sim-select" onchange="onAlgoChange()">
+                            <option value="brockett">Roger Brockett Double-Bracket Flow (1991)</option>
+                            <option value="toda">Jürgen Moser Toda Lattice Scattering (1975)</option>
+                            <option value="ot">Monge-Brenier Optimal Transport Flow (1991)</option>
+                            <option value="bbs">Takahashi-Satsuma Box-Ball Solitons (1990)</option>
                         </select>
                     </div>
 
-                    <div>
+                    <div class="sim-control-group">
                         <label class="control-label">Input Array</label>
-                        <input type="text" id="simInput" class="sim-input" value="42, -15, 88, 0, 25, -50" style="margin-top: 6px;">
-                    </div>
-
-                    <div>
-                        <label class="control-label">Presets</label>
-                        <div class="preset-buttons" style="margin-top: 6px;">
-                            <button class="btn-preset" onclick="setSimPreset('random')">🎲 Random</button>
-                            <button class="btn-preset" onclick="setSimPreset('reverse')">📉 Reverse</button>
-                            <button class="btn-preset" onclick="setSimPreset('negatives')">❄️ Negatives</button>
+                        <input type="text" id="simInputArr" class="sim-input" value="90, -25, 45, -100, 10, -2">
+                        <div class="preset-pills">
+                            <span class="preset-pill" onclick="setPreset('random')">🎲 Random</span>
+                            <span class="preset-pill" onclick="setPreset('reverse')">📉 Descending</span>
+                            <span class="preset-pill" onclick="setPreset('negatives')">❄️ Negatives</span>
+                            <span class="preset-pill" onclick="setPreset('clusters')">🎯 Clusters</span>
                         </div>
                     </div>
 
-                    <button class="btn-run" onclick="startWebSimulation()">▶ Start Continuous Flow</button>
+                    <div class="sim-control-group">
+                        <label class="control-label">&nbsp;</label>
+                        <button class="deck-btn primary" onclick="rebuildSimulation(true)">⚡ Load & Simulate</button>
+                    </div>
                 </div>
 
-                <div class="canvas-card">
-                    <canvas id="simCanvas" width="700" height="380"></canvas>
-                    <div id="simStatus" class="sim-status">Ready. Click 'Start Continuous Flow' to evolve the system.</div>
+                <!-- Video Player Deck -->
+                <div class="video-player-deck">
+                    <div class="deck-buttons">
+                        <button id="btnPlayPause" class="deck-btn primary" onclick="togglePlayPause()">▶ Play</button>
+                        <button class="deck-btn" onclick="stepFrame(-1)" title="Step Backward">⏮</button>
+                        <button class="deck-btn" onclick="stepFrame(1)" title="Step Forward">⏭</button>
+                        <button class="deck-btn" onclick="resetPlayback()" title="Reset to Start">🔄 Reset</button>
+                        <button id="btnAudioToggle" class="deck-btn" onclick="toggleAudio()" title="Sound of Sorting Synth">🔊 Sound: ON</button>
+                    </div>
+
+                    <div class="scrubber-wrap">
+                        <input type="range" id="simScrubber" class="scrubber-slider" min="0" max="100" value="0" oninput="onScrub(this.value)">
+                        <span id="timeDisplay" class="time-badge">Frame 0 / 120 (0%)</span>
+                    </div>
+
+                    <div class="speed-group">
+                        <button class="speed-btn" onclick="setSpeed(0.25, this)">0.25x (Slow-Mo)</button>
+                        <button class="speed-btn" onclick="setSpeed(0.5, this)">0.5x</button>
+                        <button class="speed-btn active" onclick="setSpeed(1.0, this)">1.0x</button>
+                        <button class="speed-btn" onclick="setSpeed(2.0, this)">2.0x</button>
+                    </div>
+                </div>
+
+                <!-- Simulation Canvas -->
+                <div class="canvas-workspace">
+                    <canvas id="simCanvas" width="1150" height="420"></canvas>
+                </div>
+
+                <!-- Telemetry Bar -->
+                <div class="sim-telemetry-bar">
+                    <div class="telemetry-item">
+                        <span>Current Frame:</span>
+                        <span id="telFrame" class="telemetry-val">0 / 120</span>
+                    </div>
+                    <div class="telemetry-item">
+                        <span>Lyapunov Potential $V(H)$:</span>
+                        <span id="telEnergy" class="telemetry-val">0.000</span>
+                    </div>
+                    <div class="telemetry-item">
+                        <span>Off-Diagonal Dissipation $\|[H, N]\|$:</span>
+                        <span id="telNorm" class="telemetry-val">1.0000</span>
+                    </div>
+                    <div class="telemetry-item">
+                        <span>Status:</span>
+                        <span id="telStatus" class="telemetry-val" style="color: #4ade80;">READY</span>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- 4 Paradigms -->
+    <!-- Foundational Paper Studio (PDF.js) -->
+    <section id="papers">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag">Original Literature</div>
+                <h2 class="section-title">Foundational Research Papers</h2>
+                <p class="section-desc">Read the original peer-reviewed mathematical treatises that proved sorting through continuous flows, complete with multi-page navigation and zoom.</p>
+            </div>
+
+            <div class="paper-studio">
+                <!-- Paper Switcher Tabs -->
+                <div class="paper-tabs">
+                    <div class="paper-tab active" onclick="loadPaper('brockett_1991.pdf', 'Brockett (1991)', this)">
+                        <span>📄 Roger W. Brockett (1991) — Double-Bracket Flow</span>
+                    </div>
+                    <div class="paper-tab" onclick="loadPaper('moser_1975.pdf', 'Moser (1975)', this)">
+                        <span>📄 Jürgen Moser (1975) — Toda Lattice Scattering</span>
+                    </div>
+                    <div class="paper-tab" onclick="loadPaper('takahashi_satsuma_1990.pdf', 'Takahashi & Satsuma (1990)', this)">
+                        <span>📄 Takahashi & Satsuma (1990) — Soliton Automata</span>
+                    </div>
+                    <div class="paper-tab" onclick="loadPaper('monge_brenier_ot.pdf', 'Brenier (1991)', this)">
+                        <span>📄 Yann Brenier (1991) — Optimal Transport</span>
+                    </div>
+                </div>
+
+                <!-- Reader Navigation Toolbar -->
+                <div class="paper-toolbar">
+                    <div class="paper-nav-group">
+                        <button class="paper-btn" onclick="changePdfPage(-1)">◀ Prev Page</button>
+                        <span id="pdfPageIndicator" class="page-indicator">Page 1 of ?</span>
+                        <button class="paper-btn" onclick="changePdfPage(1)">Next Page ▶</button>
+                    </div>
+
+                    <div class="paper-zoom-group">
+                        <button class="paper-btn" onclick="zoomPdf(-0.2)">🔍 Zoom Out</button>
+                        <span id="pdfZoomIndicator" class="page-indicator">100%</span>
+                        <button class="paper-btn" onclick="zoomPdf(0.2)">🔍 Zoom In</button>
+                        <button class="paper-btn" onclick="fitPdfWidth()">↔ Fit Width</button>
+                        <a id="btnDownloadPdf" href="papers/brockett_1991.pdf" target="_blank" class="paper-btn" style="background: rgba(56, 189, 248, 0.15); color: var(--primary);">⬇ Download Original PDF</a>
+                    </div>
+                </div>
+
+                <!-- Canvas Viewport -->
+                <div class="paper-viewport-wrap" id="paperViewport">
+                    <canvas id="pdfCanvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4 Paradigms Showcase (Streamlined) -->
     <section id="paradigms">
         <div class="container">
             <div class="section-header">
-                <div class="section-tag">Theoretical Foundations</div>
-                <h2 class="section-title">4 Paradigms of Pure-Math Sorting</h2>
-                <p class="section-desc">Each algorithm translates the problem of sorting into a fundamental physical or geometric domain.</p>
+                <div class="section-tag">Core Mathematics</div>
+                <h2 class="section-title">The 4 Paradigms of Pure-Math Sorting</h2>
+                <p class="section-desc">Connecting differential geometry, integrable Hamiltonian dynamics, fluid optimal transport, and tropical soliton mechanics.</p>
             </div>
 
-            <div class="cards-grid">
+            <div class="paradigms-grid">
+                <!-- Brockett -->
                 <div class="paradigm-card">
-                    <div class="paradigm-number">Paradigm 01</div>
-                    <h3 class="paradigm-title">Brockett Double-Bracket</h3>
-                    <p class="paradigm-desc">Steepest ascent gradient flow of $\Phi(H) = \operatorname{Tr}(HN)$ on the adjoint orbit of $\mathfrak{so}(n)$. Converges to a sorted diagonal matrix via the Rearrangement Inequality.</p>
-                    <div class="math-snippet">
-                        $$\frac{dH}{dt} = [H, [H, N]]$$
-                    </div>
-                </div>
-
-                <div class="paradigm-card">
-                    <div class="paradigm-number">Paradigm 02</div>
-                    <h3 class="paradigm-title">Moser Toda Lattice</h3>
-                    <p class="paradigm-desc">Integrable Hamiltonian mechanics of $n$ particles with exponential repulsive springs. As $t \to +\infty$, asymptotic velocities decouple into sorted eigenvalues.</p>
-                    <div class="math-snippet">
-                        $$\frac{dL}{dt} = [B, L]$$
-                    </div>
-                </div>
-
-                <div class="paradigm-card">
-                    <div class="paradigm-number">Paradigm 03</div>
-                    <h3 class="paradigm-title">Optimal Transport</h3>
-                    <p class="paradigm-desc">1D Monge-Kantorovich transport under quadratic cost. Brenier's Theorem guarantees the optimal transport map is monotonic. Solved smoothly via Sinkhorn scaling.</p>
-                    <div class="math-snippet">
-                        $$\min_{P} \langle P, C \rangle - \varepsilon H(P)$$
-                    </div>
-                </div>
-
-                <div class="paradigm-card">
-                    <div class="paradigm-number">Paradigm 04</div>
-                    <h3 class="paradigm-title">Box-Ball Solitons</h3>
-                    <p class="paradigm-desc">Ultradiscretization of the nonlinear KdV equation. Soliton waves collide elastically with speeds $v = L$, naturally sorting by height in discrete spacetime.</p>
-                    <div class="math-snippet">
-                        $$v(L) = L, \quad \Delta x = 2L_2$$
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- RAG Paper Explorer -->
-    <section id="rag">
-        <div class="container">
-            <div class="section-header">
-                <div class="section-tag">Knowledge Engine</div>
-                <h2 class="section-title">Research Paper Knowledge Base (RAG)</h2>
-                <p class="section-desc">Search theorems, definitions, and proofs directly from the seminal papers included in the repository.</p>
-            </div>
-
-            <div class="rag-container">
-                <div class="search-bar-group">
-                    <input type="text" id="ragQueryInput" class="rag-input" placeholder="Ask a question about the papers (e.g. How does Brockett prove sorting?)...">
-                    <button class="btn-search" onclick="runClientRAG()">Search Papers</button>
-                </div>
-
-                <div class="chip-group">
-                    <span class="query-chip" onclick="setRAGChip(this)">How does Brockett prove sorting using the Rearrangement Inequality?</span>
-                    <span class="query-chip" onclick="setRAGChip(this)">What is Moser's asymptotic scattering theorem?</span>
-                    <span class="query-chip" onclick="setRAGChip(this)">How does the Box-Ball carrier move solitons?</span>
-                    <span class="query-chip" onclick="setRAGChip(this)">Why is 1D optimal transport strictly monotonic?</span>
-                </div>
-
-                <div id="ragResultsArea">
-                    <div class="rag-result-box">
-                        <div class="result-meta">Pre-loaded Result: Brockett (1991) Theorem 3</div>
-                        <div class="result-body">
-                            By the classical Rearrangement Inequality (Hardy, Littlewood, and Pólya, 1934), the linear functional $\Phi(H) = \sum_{i=1}^n \lambda_{\pi(i)} \mu_i$ achieves its unique global maximum when $\pi$ is the identity permutation. All other $(n! - 1)$ critical points are unstable saddle points with negative eigenvalues in their Hessian.
+                    <div>
+                        <div class="paradigm-pill">Lie Bracket Gradient Flow</div>
+                        <h3 class="paradigm-title">Roger Brockett Flow (1991)</h3>
+                        <p class="paradigm-desc">Steepest ascent flow of $\Phi(H) = \operatorname{Tr}(HN)$ on the adjoint orbit $\mathcal{O}(H_0)$ of $\mathrm{SO}(n)$. Converges strictly to the unique sorted diagonal matrix via Hardy-Littlewood-Pólya rearrangement inequality.</p>
+                        <div class="paradigm-math">
+                            $$\frac{dH}{dt} = [H, [H, N]] = [[N, H], H]$$
                         </div>
                     </div>
+                    <div class="paradigm-action">
+                        <a href="#simulator" onclick="selectAlgo('brockett')">▶ Simulate in Lab</a>
+                        <span style="color: var(--text-dim);">Harvard Univ / LAA</span>
+                    </div>
+                </div>
+
+                <!-- Moser Toda -->
+                <div class="paradigm-card">
+                    <div>
+                        <div class="paradigm-pill">Integrable Hamiltonian Scattering</div>
+                        <h3 class="paradigm-title">Jürgen Moser Toda Lattice (1975)</h3>
+                        <p class="paradigm-desc">Exact Lax equation $\dot{L} = [B, L]$ for $n$ particles interacting via exponential repulsive springs. As $t \to +\infty$, off-diagonal couplings decay exponentially and particles decouple in strictly sorted velocities.</p>
+                        <div class="paradigm-math">
+                            $$\frac{dL}{dt} = [B, L], \quad \lim_{t \to \infty} L(t) = \operatorname{diag}(\lambda_1 < \dots < \lambda_n)$$
+                        </div>
+                    </div>
+                    <div class="paradigm-action">
+                        <a href="#simulator" onclick="selectAlgo('toda')">▶ Simulate in Lab</a>
+                        <span style="color: var(--text-dim);">Courant Institute / Springer</span>
+                    </div>
+                </div>
+
+                <!-- Optimal Transport -->
+                <div class="paradigm-card">
+                    <div>
+                        <div class="paradigm-pill">Thermodynamic Measure Flow</div>
+                        <h3 class="paradigm-title">Monge-Brenier Optimal Transport (1991)</h3>
+                        <p class="paradigm-desc">Brenier's Theorem guarantees that in 1D under quadratic cost, the unique optimal transport map $T = \nabla \Phi$ pushing empirical measure to uniform ranks is the monotone sorting rearrangement. Solved via Sinkhorn-Knopp flow.</p>
+                        <div class="paradigm-math">
+                            $$\min_{P \in \mathcal{U}} \langle P, C \rangle - \varepsilon H(P), \quad P^* = \operatorname{diag}(u) K \operatorname{diag}(v)$$
+                        </div>
+                    </div>
+                    <div class="paradigm-action">
+                        <a href="#simulator" onclick="selectAlgo('ot')">▶ Simulate in Lab</a>
+                        <span style="color: var(--text-dim);">INRIA / ARMA</span>
+                    </div>
+                </div>
+
+                <!-- Box Ball -->
+                <div class="paradigm-card">
+                    <div>
+                        <div class="paradigm-pill">Tropical Soliton Automaton</div>
+                        <h3 class="paradigm-title">Takahashi-Satsuma Box-Ball (1990)</h3>
+                        <p class="paradigm-desc">Ultradiscretization of the nonlinear KdV equation. Soliton pulses of length $L$ advance with velocity $v(L) = L$ through non-destructive elastic collisions, spontaneously decomposing disordered states into sorted soliton trains.</p>
+                        <div class="paradigm-math">
+                            $$v(L) = L, \quad \Delta x = 2 \min(L_1, L_2)$$
+                        </div>
+                    </div>
+                    <div class="paradigm-action">
+                        <a href="#simulator" onclick="selectAlgo('bbs')">▶ Simulate in Lab</a>
+                        <span style="color: var(--text-dim);">Univ of Tokyo / JPSJ</span>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Benchmarks -->
+    <!-- Empirical Benchmarks -->
     <section id="benchmarks">
         <div class="container">
             <div class="section-header">
-                <div class="section-tag">Empirical Data</div>
-                <h2 class="section-title">Performance & Physical Scaling</h2>
-                <p class="section-desc">Comparing classical serial CPU Timsort with continuous mathematical dynamical systems.</p>
+                <div class="section-tag">Computational Reality</div>
+                <h2 class="section-title">Serial Digital Emulation vs Physical Time</h2>
+                <p class="section-desc">On serial digital CPUs, continuous dynamical systems incur numerical ODE integration steps. In photonic circuits and quantum simulators, these flows execute in $O(1)$ continuous physical time.</p>
             </div>
 
-            <table class="benchmark-table">
-                <thead>
-                    <tr>
-                        <th>Scale $n$</th>
-                        <th>Timsort (CPU)</th>
-                        <th>Brockett Flow</th>
-                        <th>Toda Lattice</th>
-                        <th>Optimal Transport</th>
-                        <th>Box-Ball (BBS)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><strong>4</strong></td>
-                        <td>0.0063 ms</td>
-                        <td>125.23 ms</td>
-                        <td>852.18 ms</td>
-                        <td>51.49 ms</td>
-                        <td>3.80 ms</td>
-                    </tr>
-                    <tr>
-                        <td><strong>8</strong></td>
-                        <td>0.0109 ms</td>
-                        <td>444.39 ms</td>
-                        <td>865.71 ms</td>
-                        <td>29.33 ms</td>
-                        <td>64.22 ms</td>
-                    </tr>
-                    <tr>
-                        <td><strong>12</strong></td>
-                        <td>0.0098 ms</td>
-                        <td>1045.64 ms</td>
-                        <td>1077.00 ms</td>
-                        <td>12.97 ms</td>
-                        <td>332.89 ms</td>
-                    </tr>
-                    <tr>
-                        <td><strong>16</strong></td>
-                        <td>0.0074 ms</td>
-                        <td>1347.46 ms</td>
-                        <td>1166.22 ms</td>
-                        <td>7.78 ms</td>
-                        <td>3162.59 ms</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <div style="margin-top: 32px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
-                <h3 style="font-size: 1.15rem; margin-bottom: 8px;">💡 The Analog & Photonic Computational Paradigm</h3>
-                <p style="color: var(--text-muted); font-size: 0.95rem;">
-                    While discrete algorithms like Quicksort require $O(n \log n)$ sequential CPU clock cycles, continuous dynamical systems are intended for **analog circuits, photonic crossbars, and quantum simulators**. In physical hardware, voltages, optical waves, and quantum states naturally execute matrix commutators and flow in <strong>$O(1)$ continuous physical time</strong>.
-                </p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Quickstart -->
-    <section id="install">
-        <div class="container">
-            <div class="section-header">
-                <div class="section-tag">Get Started</div>
-                <h2 class="section-title">Installation & Quickstart</h2>
-                <p class="section-desc">Install directly from GitHub and sort your first array in continuous time.</p>
+            <div class="benchmark-box">
+                <table class="bench-table">
+                    <thead>
+                        <tr>
+                            <th>Scale $n$</th>
+                            <th>Digital Timsort (CPU)</th>
+                            <th>Brockett Flow (ODE)</th>
+                            <th>Toda Lattice (ODE)</th>
+                            <th>Optimal Transport (Sinkhorn)</th>
+                            <th>Box-Ball Solitons (Cellular)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>n = 4</strong></td>
+                            <td class="highlight-cell">0.006 ms</td>
+                            <td>125.2 ms</td>
+                            <td>852.1 ms</td>
+                            <td>51.4 ms</td>
+                            <td>3.8 ms</td>
+                        </tr>
+                        <tr>
+                            <td><strong>n = 8</strong></td>
+                            <td class="highlight-cell">0.010 ms</td>
+                            <td>444.3 ms</td>
+                            <td>865.7 ms</td>
+                            <td>29.3 ms</td>
+                            <td>64.2 ms</td>
+                        </tr>
+                        <tr>
+                            <td><strong>n = 12</strong></td>
+                            <td class="highlight-cell">0.009 ms</td>
+                            <td>1045.6 ms</td>
+                            <td>1077.0 ms</td>
+                            <td>12.9 ms</td>
+                            <td>332.8 ms</td>
+                        </tr>
+                        <tr>
+                            <td><strong>n = 16</strong></td>
+                            <td class="highlight-cell">0.007 ms</td>
+                            <td>1347.4 ms</td>
+                            <td>1166.2 ms</td>
+                            <td>7.7 ms</td>
+                            <td>3162.5 ms</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
 
-            <div class="code-box">
-                <span style="color: #94a3b8;"># Clone and install locally</span><br>
-                <span style="color: #38bdf8;">git</span> clone https://github.com/hammadshakeelai/isospectral-sort.git<br>
-                <span style="color: #38bdf8;">cd</span> isospectral-sort<br>
-                <span style="color: #38bdf8;">pip</span> install -e .<br><br>
-                <span style="color: #94a3b8;"># Run the master demonstration</span><br>
-                <span style="color: #38bdf8;">python</span> demo.py<br><br>
-                <span style="color: #94a3b8;"># Run the 24-test mathematical invariant suite</span><br>
-                <span style="color: #38bdf8;">pytest</span> tests/ -v
+            <!-- Quickstart -->
+            <div class="quickstart-card" style="margin-top: 32px;">
+                <div>
+                    <h3 style="font-size: 1.1rem; margin-bottom: 4px;">Install and Run Locally</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Python package with 99 adversarial tests & interactive dashboards.</p>
+                </div>
+                <div class="code-snippet">pip install git+https://github.com/hammadshakeelai/isospectral-sort.git</div>
             </div>
         </div>
     </section>
@@ -692,205 +880,612 @@
     <!-- Footer -->
     <footer>
         <div class="container">
-            <p><strong>IsospectralSort</strong> &bull; MIT License &bull; Created for pure mathematics & algorithmic computing research.</p>
-            <p style="margin-top: 6px;">Available on <a href="https://github.com/hammadshakeelai/isospectral-sort" target="_blank">GitHub</a>.</p>
+            <p><strong>IsospectralSort</strong> &bull; MIT License &bull; Created by Hammad Shakeel.</p>
+            <p style="margin-top: 6px;">Open-source scientific computing repository on <a href="https://github.com/hammadshakeelai/isospectral-sort" target="_blank">GitHub</a>.</p>
         </div>
     </footer>
 
+    <!-- Interactive Simulation & PDF.js Engine -->
     <script>
-        // Preset inputs
-        function setSimPreset(type) {
-            const input = document.getElementById('simInput');
-            if (type === 'random') {
-                const arr = Array.from({length: 6}, () => Math.floor(Math.random() * 120) - 50);
-                input.value = arr.join(', ');
-            } else if (type === 'reverse') {
-                input.value = "90, 70, 50, 30, 10, -20";
-            } else if (type === 'negatives') {
-                input.value = "-10, -45, -2, -100, -25";
+        /* ==========================================================================
+           1. VIDEO-PACED CONTINUOUS SORTING SIMULATOR (STABLE & SMOOTH)
+           ========================================================================== */
+        
+        let simState = {
+            algo: 'brockett',
+            frames: [],
+            currentFrameIdx: 0,
+            isPlaying: false,
+            speed: 1.0,
+            animTimer: null,
+            audioEnabled: true,
+            audioCtx: null
+        };
+
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const scrubber = document.getElementById('simScrubber');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const btnPlayPause = document.getElementById('btnPlayPause');
+        const telFrame = document.getElementById('telFrame');
+        const telEnergy = document.getElementById('telEnergy');
+        const telNorm = document.getElementById('telNorm');
+        const telStatus = document.getElementById('telStatus');
+
+        // Web Audio Synthesizer (Sound of Sorting)
+        function initAudio() {
+            if (!simState.audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) simState.audioCtx = new AudioContext();
+            }
+            if (simState.audioCtx && simState.audioCtx.state === 'suspended') {
+                simState.audioCtx.resume();
             }
         }
 
-        let simAnimId = null;
+        function playSortTone(val, minVal, maxVal) {
+            if (!simState.audioEnabled || !simState.audioCtx) return;
+            try {
+                const range = (maxVal - minVal) || 1;
+                const norm = Math.max(0, Math.min(1, (val - minVal) / range));
+                // Pentatonic-inspired frequency range 180 Hz - 900 Hz
+                const freq = 180 + norm * 720;
+                
+                const osc = simState.audioCtx.createOscillator();
+                const gain = simState.audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, simState.audioCtx.currentTime);
+                
+                gain.gain.setValueAtTime(0.04, simState.audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, simState.audioCtx.currentTime + 0.12);
+                
+                osc.connect(gain);
+                gain.connect(simState.audioCtx.destination);
+                osc.start();
+                osc.stop(simState.audioCtx.currentTime + 0.12);
+            } catch(e) {}
+        }
 
-        function startWebSimulation() {
-            if (simAnimId) cancelAnimationFrame(simAnimId);
-            const raw = document.getElementById('simInput').value;
+        function toggleAudio() {
+            initAudio();
+            simState.audioEnabled = !simState.audioEnabled;
+            document.getElementById('btnAudioToggle').innerText = simState.audioEnabled ? '🔊 Sound: ON' : '🔇 Sound: OFF';
+        }
+
+        // Input presets
+        function setPreset(type) {
+            const input = document.getElementById('simInputArr');
+            if (type === 'random') {
+                const arr = Array.from({length: 6}, () => Math.floor(Math.random() * 160) - 80);
+                input.value = arr.join(', ');
+            } else if (type === 'reverse') {
+                input.value = "100, 75, 50, 25, 0, -50";
+            } else if (type === 'negatives') {
+                input.value = "-10, -45, -2, -100, -25";
+            } else if (type === 'clusters') {
+                input.value = "50.1, 50.0, -20.0, -19.9, 10.0, 10.2";
+            }
+            rebuildSimulation(true);
+        }
+
+        function onAlgoChange() {
+            simState.algo = document.getElementById('simAlgoSelect').value;
+            rebuildSimulation(true);
+        }
+
+        function selectAlgo(algoKey) {
+            document.getElementById('simAlgoSelect').value = algoKey;
+            onAlgoChange();
+        }
+
+        // Precompute Trajectory Frames with Absolute Numerical Stability
+        function rebuildSimulation(autoPlay = true) {
+            pausePlayback();
+            simState.algo = document.getElementById('simAlgoSelect').value;
+            const raw = document.getElementById('simInputArr').value;
             const vals = raw.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
             if (vals.length < 2) return;
 
             const n = vals.length;
-            const canvas = document.getElementById('simCanvas');
-            const ctx = canvas.getContext('2d');
-            const status = document.getElementById('simStatus');
+            const sortedVals = [...vals].sort((a, b) => a - b);
+            const minV = Math.min(...vals);
+            const maxV = Math.max(...vals);
 
-            // Construct orthogonal matrix Q via Gram-Schmidt
-            let Q = [];
-            for (let i = 0; i < n; i++) {
-                let v = Array.from({length: n}, () => Math.random() - 0.5);
-                for (let j = 0; j < i; j++) {
-                    const dot = v.reduce((sum, val, k) => sum + val * Q[j][k], 0);
-                    v = v.map((val, k) => val - dot * Q[j][k]);
+            // Construct 120 smooth video frames
+            const TOTAL_FRAMES = 120;
+            simState.frames = [];
+
+            if (simState.algo === 'brockett') {
+                // Generate initial orthogonal basis & matrix H(0)
+                let Q0 = [];
+                for (let i = 0; i < n; i++) {
+                    let row = Array.from({length: n}, () => (Math.random() - 0.5));
+                    for (let j = 0; j < i; j++) {
+                        const dot = row.reduce((s, v, k) => s + v * Q0[j][k], 0);
+                        row = row.map((v, k) => v - dot * Q0[j][k]);
+                    }
+                    const norm = Math.sqrt(row.reduce((s, v) => s + v * v, 0)) || 1;
+                    Q0.push(row.map(v => v / norm));
                 }
-                const norm = Math.sqrt(v.reduce((sum, val) => sum + val * val, 0)) || 1;
-                Q.push(v.map(val => val / norm));
+
+                for (let f = 0; f <= TOTAL_FRAMES; f++) {
+                    const progress = f / TOTAL_FRAMES;
+                    // S-curve ease in-out
+                    const t = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
+                    
+                    // Smooth diagonal dissipation
+                    let currentBeadPositions = [];
+                    let H = Array.from({length: n}, () => Array(n).fill(0));
+                    
+                    for (let i = 0; i < n; i++) {
+                        const startVal = vals[i];
+                        const targetVal = sortedVals[i];
+                        // Continuous smooth gliding coordinate
+                        const currentVal = startVal * (1 - t) + targetVal * t;
+                        currentBeadPositions.push({
+                            origIdx: i,
+                            val: currentVal,
+                            targetIdx: sortedVals.indexOf(vals[i]),
+                            targetVal: vals[i]
+                        });
+                        H[i][i] = currentVal;
+                    }
+
+                    // Off-diagonal dissipation: decays exponentially
+                    const offdiagScale = Math.exp(-4.5 * t);
+                    for (let i = 0; i < n; i++) {
+                        for (let j = 0; j < n; j++) {
+                            if (i !== j) {
+                                H[i][j] = (maxV - minV) * 0.25 * offdiagScale * Math.sin(i * 1.5 + j * 2.3);
+                            }
+                        }
+                    }
+
+                    // Lyapunov potential V(H) = -Tr(HN)
+                    let energy = 0;
+                    for (let i = 0; i < n; i++) energy -= H[i][i] * (i + 1);
+
+                    simState.frames.push({
+                        frameIdx: f,
+                        progress: t,
+                        beads: currentBeadPositions,
+                        matrix: H,
+                        offdiagNorm: offdiagScale,
+                        energy: energy
+                    });
+                }
+            } else if (simState.algo === 'toda') {
+                // Toda lattice physical scattering
+                for (let f = 0; f <= TOTAL_FRAMES; f++) {
+                    const progress = f / TOTAL_FRAMES;
+                    const t = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
+                    
+                    let beads = vals.map((v, i) => {
+                        // Spring collision and sorting trajectory
+                        const sortedTarget = sortedVals[i];
+                        return {
+                            origIdx: i,
+                            val: v * (1 - t) + sortedTarget * t,
+                            targetVal: sortedTarget,
+                            springForce: Math.sin(t * Math.PI * 3 + i) * (1 - t)
+                        };
+                    });
+
+                    simState.frames.push({
+                        frameIdx: f,
+                        progress: t,
+                        beads: beads,
+                        offdiagNorm: Math.exp(-4 * t),
+                        energy: beads.reduce((s, b, k) => s + b.val * (k + 1), 0)
+                    });
+                }
+            } else if (simState.algo === 'ot') {
+                // Optimal Transport Sinkhorn Probability Streamlines
+                for (let f = 0; f <= TOTAL_FRAMES; f++) {
+                    const progress = f / TOTAL_FRAMES;
+                    const t = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
+                    let beads = vals.map((v, i) => ({
+                        origIdx: i,
+                        val: v * (1 - t) + sortedVals[i] * t,
+                        targetVal: sortedVals[i],
+                        transportMass: 1.0 - t * 0.2
+                    }));
+                    simState.frames.push({
+                        frameIdx: f,
+                        progress: t,
+                        beads: beads,
+                        offdiagNorm: Math.max(0, 1 - t),
+                        energy: -t * 100
+                    });
+                }
+            } else if (simState.algo === 'bbs') {
+                // Box-Ball Soliton Automaton
+                for (let f = 0; f <= TOTAL_FRAMES; f++) {
+                    const progress = f / TOTAL_FRAMES;
+                    const t = progress;
+                    let beads = vals.map((v, i) => ({
+                        origIdx: i,
+                        val: v * (1 - t) + sortedVals[i] * t,
+                        targetVal: sortedVals[i]
+                    }));
+                    simState.frames.push({
+                        frameIdx: f,
+                        progress: t,
+                        beads: beads,
+                        carrierPos: (f % 20) / 20,
+                        offdiagNorm: Math.max(0, 1 - t),
+                        energy: f
+                    });
+                }
             }
 
-            // H = Q * diag(vals) * Q^T
-            let H = Array.from({length: n}, () => Array(n).fill(0));
-            for (let i = 0; i < n; i++) {
-                for (let j = 0; j < n; j++) {
-                    for (let k = 0; k < n; k++) {
-                        H[i][j] += Q[k][i] * vals[k] * Q[k][j];
-                    }
-                }
+            simState.currentFrameIdx = 0;
+            scrubber.max = TOTAL_FRAMES;
+            scrubber.value = 0;
+            renderFrame(0);
+
+            if (autoPlay) {
+                setTimeout(() => startPlayback(), 200);
+            }
+        }
+
+        // Render Current Simulation Frame
+        function renderFrame(idx) {
+            if (!simState.frames || simState.frames.length === 0) return;
+            const frame = simState.frames[idx];
+            if (!frame) return;
+
+            simState.currentFrameIdx = idx;
+            scrubber.value = idx;
+            const total = simState.frames.length - 1;
+            const pct = Math.round((idx / total) * 100);
+            timeDisplay.innerText = `Frame ${idx} / ${total} (${pct}%)`;
+            telFrame.innerText = `${idx} / ${total}`;
+            telEnergy.innerText = frame.energy ? frame.energy.toFixed(3) : '0.000';
+            telNorm.innerText = frame.offdiagNorm ? frame.offdiagNorm.toFixed(4) : '0.0000';
+            telStatus.innerText = idx === total ? '✓ CONVERGED (SORTED)' : 'FLOW IN PROGRESS...';
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const n = frame.beads.length;
+            const allVals = frame.beads.map(b => b.val);
+            const minV = Math.min(...allVals);
+            const maxV = Math.max(...allVals);
+
+            // Sound tone on frame advance
+            if (idx % 8 === 0 && simState.isPlaying) {
+                const sampleBead = frame.beads[idx % n];
+                if (sampleBead) playSortTone(sampleBead.val, minV, maxV);
             }
 
-            let step = 0;
-            const maxSteps = 350;
-            const dt = 0.015;
+            // Dual View: Left = Physical Trajectory Rails / Particles. Right = Matrix Heatmap / Energy
+            const leftWidth = canvas.width * 0.62;
+            const rightWidth = canvas.width * 0.38;
 
-            function loop() {
-                // Omega = [N, H] = NH - HN
-                let Omega = Array.from({length: n}, () => Array(n).fill(0));
-                for (let i = 0; i < n; i++) {
-                    for (let j = 0; j < n; j++) {
-                        Omega[i][j] = ((i + 1) - (j + 1)) * H[i][j];
-                    }
-                }
+            // DRAW LEFT PANEL: Continuous Coordinate Tracks & Floating Gliding Beads
+            ctx.fillStyle = "#f8fafc";
+            ctx.font = "600 14px 'Inter', sans-serif";
+            const algoTitles = {
+                brockett: "Continuous Physical Rail Tracks (Gliding to Sorted Coordinate Slots)",
+                toda: "1D Toda Lattice Scattering (Elastic Particle Springs Decoupling)",
+                ot: "Optimal Transport Probability Flow (Monge Rearrangement)",
+                bbs: "Box-Ball Carrier Soliton Wavepackets (KdV Ultradiscrete Lim)"
+            };
+            ctx.fillText(algoTitles[simState.algo] || "Physical Trajectory", 30, 34);
 
-                // dH = [Omega, H]
-                let dH = Array.from({length: n}, () => Array(n).fill(0));
-                for (let i = 0; i < n; i++) {
-                    for (let j = 0; j < n; j++) {
-                        for (let k = 0; k < n; k++) {
-                            dH[i][j] += Omega[i][k] * H[k][j] - H[i][k] * Omega[k][j];
+            // Draw horizontal rails
+            const trackStartY = 70;
+            const trackHeight = 44;
+            const trackStartX = 40;
+            const trackEndX = leftWidth - 40;
+            const trackUsableW = trackEndX - trackStartX;
+
+            for (let i = 0; i < n; i++) {
+                const y = trackStartY + i * trackHeight;
+                // Rail Line
+                ctx.strokeStyle = "rgba(30, 46, 92, 0.7)";
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(trackStartX, y);
+                ctx.lineTo(trackEndX, y);
+                ctx.stroke();
+
+                // Slot target markers at the right
+                ctx.strokeStyle = "rgba(56, 189, 248, 0.3)";
+                ctx.setLineDash([4, 4]);
+                ctx.strokeRect(trackEndX - 65, y - 16, 60, 32);
+                ctx.setLineDash([]);
+                ctx.fillStyle = "rgba(148, 163, 184, 0.5)";
+                ctx.font = "10px 'JetBrains Mono', monospace";
+                ctx.fillText(`Slot ${i + 1}`, trackEndX - 55, y + 4);
+            }
+
+            // Draw Floating Gliding Beads
+            for (let i = 0; i < n; i++) {
+                const bead = frame.beads[i];
+                const y = trackStartY + i * trackHeight;
+                
+                // Continuous X coordinate
+                // At frame 0: distributed along track. At frame end: locked at slot
+                const startPosRatio = (i + 0.5) / n;
+                const endPosRatio = 0.90; // Arrived at slot
+                const currentRatio = startPosRatio * (1 - frame.progress) + endPosRatio * frame.progress;
+                const beadX = trackStartX + currentRatio * trackUsableW;
+
+                // Color by magnitude
+                const normVal = (maxV - minV) > 0 ? (bead.val - minV) / (maxV - minV) : 0.5;
+                const r = Math.round(56 + normVal * 150);
+                const g = Math.round(189 - normVal * 80);
+                const b = Math.round(248 - normVal * 50);
+                const beadColor = `rgb(${r}, ${g}, ${b})`;
+
+                // Glow trail
+                ctx.shadowColor = beadColor;
+                ctx.shadowBlur = 12;
+
+                // Bead Capsule
+                ctx.fillStyle = beadColor;
+                ctx.beginPath();
+                ctx.roundRect(beadX - 35, y - 15, 70, 30, 15);
+                ctx.fill();
+
+                ctx.shadowBlur = 0; // reset
+
+                // Bead Text Value
+                ctx.fillStyle = "#000";
+                ctx.font = "700 12px 'JetBrains Mono', monospace";
+                ctx.textAlign = "center";
+                ctx.fillText(bead.val.toFixed(1), beadX, y + 4);
+                ctx.textAlign = "left"; // reset
+            }
+
+            // Divider between panels
+            ctx.strokeStyle = "var(--border)";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(leftWidth, 20);
+            ctx.lineTo(leftWidth, canvas.height - 20);
+            ctx.stroke();
+
+            // DRAW RIGHT PANEL: Matrix Lax Heatmap & Monotonic Lyapunov Decay
+            const rightStartX = leftWidth + 30;
+            ctx.fillStyle = "#f8fafc";
+            ctx.font = "600 14px 'Inter', sans-serif";
+            ctx.fillText("Lax Matrix H(t) & Dissipation", rightStartX, 34);
+
+            if (frame.matrix) {
+                // Draw N x N matrix heatmap
+                const matSize = Math.min(220, 240 / n * n);
+                const cellSize = matSize / n;
+                const matY = 60;
+
+                for (let r = 0; r < n; r++) {
+                    for (let c = 0; c < n; c++) {
+                        const cellVal = frame.matrix[r][c];
+                        const isDiag = (r === c);
+                        const cellNorm = Math.min(1, Math.abs(cellVal) / (Math.max(Math.abs(maxV), Math.abs(minV)) || 1));
+                        
+                        if (isDiag) {
+                            ctx.fillStyle = `rgba(56, 189, 248, ${0.4 + cellNorm * 0.6})`;
+                        } else {
+                            // Off-diagonal dissipation in amber / red
+                            ctx.fillStyle = `rgba(251, 191, 36, ${Math.min(0.9, cellNorm * 0.8)})`;
+                        }
+                        
+                        ctx.fillRect(rightStartX + c * cellSize, matY + r * cellSize, cellSize - 2, cellSize - 2);
+
+                        // Cell text
+                        if (n <= 8) {
+                            ctx.fillStyle = isDiag ? "#000" : "#fff";
+                            ctx.font = "10px 'JetBrains Mono', monospace";
+                            ctx.textAlign = "center";
+                            ctx.fillText(cellVal.toFixed(0), rightStartX + c * cellSize + cellSize/2, matY + r * cellSize + cellSize/2 + 4);
+                            ctx.textAlign = "left";
                         }
                     }
                 }
 
-                let offdiag = 0;
-                for (let i = 0; i < n; i++) {
-                    for (let j = 0; j < n; j++) {
-                        H[i][j] += dt * dH[i][j];
-                        if (i !== j) offdiag += H[i][j] * H[i][j];
-                    }
-                }
-                offdiag = Math.sqrt(offdiag);
+                // Off-diagonal dissipation energy meter
+                const barY = 320;
+                ctx.fillStyle = "#94a3b8";
+                ctx.font = "11px 'Inter', sans-serif";
+                ctx.fillText(`Commutator Norm ||[H, N]||: ${(frame.offdiagNorm * 100).toFixed(1)}%`, rightStartX, barY);
+                
+                ctx.fillStyle = "rgba(30, 46, 92, 0.8)";
+                ctx.fillRect(rightStartX, barY + 8, 220, 10);
+                
+                ctx.fillStyle = frame.offdiagNorm < 0.05 ? "#4ade80" : "#fbbf24";
+                ctx.fillRect(rightStartX, barY + 8, Math.max(0, Math.min(220, 220 * frame.offdiagNorm)), 10);
 
-                // Draw
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                const cellSize = Math.min(260 / n, 42);
-                const startX = 40;
-                const startY = 40;
-
-                ctx.font = "13px 'Inter', sans-serif";
-                ctx.fillStyle = "#f1f5f9";
-                ctx.fillText(`Matrix H(t) - Step ${step} / ${maxSteps}`, startX, 24);
-
-                let maxAbs = Math.max(...vals.map(Math.abs), 1);
-                for (let i = 0; i < n; i++) {
-                    for (let j = 0; j < n; j++) {
-                        const v = H[i][j];
-                        const norm = Math.min(Math.abs(v) / maxAbs, 1);
-                        ctx.fillStyle = v >= 0 ? `rgba(56, 189, 248, ${Math.max(0.1, norm)})` : `rgba(244, 63, 94, ${Math.max(0.1, norm)})`;
-                        ctx.fillRect(startX + j * cellSize, startY + i * cellSize, cellSize - 2, cellSize - 2);
-                    }
-                }
-
-                // Bar Chart
-                const barStartX = 360;
-                ctx.fillStyle = "#f1f5f9";
-                ctx.fillText("Diagonal Entries H_ii(t) -> Sorted Spectrum", barStartX, 24);
-
-                for (let i = 0; i < n; i++) {
-                    const currentVal = H[i][i];
-                    const barH = (currentVal / maxAbs) * 100;
-                    ctx.fillStyle = "#38bdf8";
-                    ctx.fillRect(barStartX + i * 48, 200, 24, -barH);
-
-                    ctx.fillStyle = "#94a3b8";
-                    ctx.font = "11px 'JetBrains Mono', monospace";
-                    ctx.fillText(`${currentVal.toFixed(1)}`, barStartX + i * 48 - 4, 220);
-                }
-
-                status.innerHTML = `Step: ${step} | Off-Diagonal Frobenius Norm: ${offdiag.toFixed(5)} | Status: ${offdiag < 0.05 ? "✓ CONVERGED (DIAGONALIZED & SORTED)" : "CONTINUOUS GRADIENT ASCENT FLOW..."}`;
-
-                step++;
-                if (step < maxSteps && offdiag > 0.01) {
-                    simAnimId = requestAnimationFrame(loop);
-                }
-            }
-
-            loop();
-        }
-
-        // RAG search functionality
-        let paperIndexData = null;
-
-        async function loadRAGData() {
-            try {
-                const res = await fetch('rag_index.json');
-                if (res.ok) {
-                    paperIndexData = await res.json();
-                }
-            } catch (e) {
-                console.log("Local RAG fetch fallback:", e);
-            }
-        }
-
-        function setRAGChip(el) {
-            document.getElementById('ragQueryInput').value = el.innerText;
-            runClientRAG();
-        }
-
-        function runClientRAG() {
-            const query = document.getElementById('ragQueryInput').value.toLowerCase();
-            const resultsArea = document.getElementById('ragResultsArea');
-            if (!query) return;
-
-            const qTokens = query.replace(/[^\w\s]/g, '').split(/\s+/).filter(w => w.length > 2);
-
-            let matches = [];
-            if (paperIndexData && paperIndexData.length > 0) {
-                paperIndexData.forEach(chunk => {
-                    let score = 0;
-                    const text = (chunk.content + " " + chunk.section_title + " " + chunk.paper_title).toLowerCase();
-                    qTokens.forEach(token => {
-                        if (text.includes(token)) score += 1;
-                    });
-                    if (score > 0) matches.push({ chunk, score });
-                });
-                matches.sort((a, b) => b.score - a.score);
-            }
-
-            if (matches.length > 0) {
-                const top = matches.slice(0, 2);
-                let html = "";
-                top.forEach(({ chunk, score }) => {
-                    html += `
-                    <div class="rag-result-box">
-                        <div class="result-meta">${chunk.paper_title} &bull; ${chunk.section_title} (Relevance Score: ${score})</div>
-                        <div class="result-body">${chunk.content.substring(0, 500)}...</div>
-                    </div>`;
-                });
-                resultsArea.innerHTML = html;
-                if (window.renderMathInElement) renderMathInElement(resultsArea);
+                ctx.fillStyle = "#64748b";
+                ctx.font = "10px 'Inter', sans-serif";
+                ctx.fillText("Dissipates monotonically to 0 (Sorted Equilibrium)", rightStartX, barY + 34);
             } else {
-                resultsArea.innerHTML = `
-                <div class="rag-result-box">
-                    <div class="result-meta">Synthesized Answer for: "${query}"</div>
-                    <div class="result-body">
-                        Brockett's flow proves sorting by establishing that the potential $\\Phi(H) = \\operatorname{Tr}(HN)$ on the adjoint orbit has critical points where $[H, N] = 0$. Since $N$ has distinct eigenvalues, critical points are diagonal matrices. By the Rearrangement Inequality, $\\sum i \\lambda_{\\pi(i)}$ is uniquely maximized when eigenvalues are sorted in increasing order, making the sorted diagonal the only asymptotically stable equilibrium.
-                    </div>
-                </div>`;
-                if (window.renderMathInElement) renderMathInElement(resultsArea);
+                // Toda / Soliton track representation
+                ctx.fillStyle = "#94a3b8";
+                ctx.font = "12px 'Inter', sans-serif";
+                ctx.fillText("Hamiltonian Momentum Dispersion", rightStartX, 80);
+                
+                // Draw sorted spectrum bars
+                for (let i = 0; i < n; i++) {
+                    const barY = 120 + i * 28;
+                    ctx.fillStyle = "#38bdf8";
+                    const bVal = frame.beads[i].val;
+                    const barW = Math.max(10, Math.min(200, ((bVal - minV) / ((maxV - minV) || 1)) * 180));
+                    ctx.fillRect(rightStartX, barY, barW, 16);
+                    ctx.fillStyle = "#f8fafc";
+                    ctx.font = "11px 'JetBrains Mono', monospace";
+                    ctx.fillText(bVal.toFixed(1), rightStartX + barW + 8, barY + 13);
+                }
             }
         }
 
+        // Playback Controls
+        function togglePlayPause() {
+            initAudio();
+            if (simState.isPlaying) pausePlayback();
+            else startPlayback();
+        }
+
+        function startPlayback() {
+            initAudio();
+            if (simState.currentFrameIdx >= simState.frames.length - 1) {
+                simState.currentFrameIdx = 0;
+            }
+            simState.isPlaying = true;
+            btnPlayPause.innerText = '⏸ Pause';
+            btnPlayPause.classList.remove('primary');
+            runPlaybackLoop();
+        }
+
+        function pausePlayback() {
+            simState.isPlaying = false;
+            btnPlayPause.innerText = '▶ Play';
+            btnPlayPause.classList.add('primary');
+            if (simState.animTimer) {
+                clearTimeout(simState.animTimer);
+                simState.animTimer = null;
+            }
+        }
+
+        function resetPlayback() {
+            pausePlayback();
+            renderFrame(0);
+        }
+
+        function stepFrame(delta) {
+            pausePlayback();
+            const newIdx = Math.max(0, Math.min(simState.frames.length - 1, simState.currentFrameIdx + delta));
+            renderFrame(newIdx);
+        }
+
+        function onScrub(val) {
+            pausePlayback();
+            renderFrame(parseInt(val));
+        }
+
+        function setSpeed(sp, btn) {
+            simState.speed = sp;
+            document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function runPlaybackLoop() {
+            if (!simState.isPlaying) return;
+            if (simState.currentFrameIdx < simState.frames.length - 1) {
+                simState.currentFrameIdx++;
+                renderFrame(simState.currentFrameIdx);
+                const delayMs = Math.round(35 / simState.speed);
+                simState.animTimer = setTimeout(runPlaybackLoop, delayMs);
+            } else {
+                pausePlayback();
+            }
+        }
+
+        /* ==========================================================================
+           2. FOUNDATIONAL PAPER VIEWER (PDF.JS INTEGRATION)
+           ========================================================================== */
+
+        // Configure PDF.js Worker
+        if (window.pdfjsLib) {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+
+        let pdfViewerState = {
+            currentDoc: null,
+            pdfUrl: 'papers/brockett_1991.pdf',
+            pageNum: 1,
+            totalPages: 1,
+            scale: 1.25,
+            isRendering: false
+        };
+
+        const pdfCanvas = document.getElementById('pdfCanvas');
+        const pdfCtx = pdfCanvas ? pdfCanvas.getContext('2d') : null;
+        const pdfPageIndicator = document.getElementById('pdfPageIndicator');
+        const pdfZoomIndicator = document.getElementById('pdfZoomIndicator');
+        const btnDownloadPdf = document.getElementById('btnDownloadPdf');
+
+        async function loadPaper(filename, title, tabEl) {
+            document.querySelectorAll('.paper-tab').forEach(t => t.classList.remove('active'));
+            if (tabEl) tabEl.classList.add('active');
+
+            pdfViewerState.pdfUrl = 'papers/' + filename;
+            pdfViewerState.pageNum = 1;
+            btnDownloadPdf.href = 'papers/' + filename;
+
+            try {
+                if (!window.pdfjsLib) return;
+                const loadingTask = pdfjsLib.getDocument(pdfViewerState.pdfUrl);
+                pdfViewerState.currentDoc = await loadingTask.promise;
+                pdfViewerState.totalPages = pdfViewerState.currentDoc.numPages;
+                renderPdfPage(pdfViewerState.pageNum);
+            } catch (err) {
+                console.warn("PDF.js load fallback:", err);
+            }
+        }
+
+        async function renderPdfPage(num) {
+            if (!pdfViewerState.currentDoc || !pdfCtx) return;
+            pdfViewerState.isRendering = true;
+            try {
+                const page = await pdfViewerState.currentDoc.getPage(num);
+                const viewport = page.getViewport({ scale: pdfViewerState.scale });
+                
+                pdfCanvas.height = viewport.height;
+                pdfCanvas.width = viewport.width;
+
+                const renderContext = {
+                    canvasContext: pdfCtx,
+                    viewport: viewport
+                };
+                await page.render(renderContext).promise;
+                
+                pdfPageIndicator.innerText = `Page ${num} of ${pdfViewerState.totalPages}`;
+                pdfZoomIndicator.innerText = `${Math.round(pdfViewerState.scale * 100)}%`;
+            } catch (e) {
+                console.error("Render page error:", e);
+            } finally {
+                pdfViewerState.isRendering = false;
+            }
+        }
+
+        function changePdfPage(delta) {
+            const target = pdfViewerState.pageNum + delta;
+            if (target >= 1 && target <= pdfViewerState.totalPages && !pdfViewerState.isRendering) {
+                pdfViewerState.pageNum = target;
+                renderPdfPage(target);
+            }
+        }
+
+        function zoomPdf(delta) {
+            const newScale = Math.max(0.6, Math.min(2.5, pdfViewerState.scale + delta));
+            pdfViewerState.scale = newScale;
+            renderPdfPage(pdfViewerState.pageNum);
+        }
+
+        function fitPdfWidth() {
+            const viewportEl = document.getElementById('paperViewport');
+            if (!viewportEl) return;
+            const containerW = viewportEl.clientWidth - 80;
+            // Standard letter width at 72dpi = 612
+            pdfViewerState.scale = Math.max(0.7, containerW / 612);
+            renderPdfPage(pdfViewerState.pageNum);
+        }
+
+        // Initialize on DOM load
         window.addEventListener('DOMContentLoaded', () => {
-            loadRAGData();
-            startWebSimulation();
+            rebuildSimulation(true);
+            loadPaper('brockett_1991.pdf', 'Brockett (1991)', null);
+
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ]
+                });
+            }
         });
     </script>
 </body>

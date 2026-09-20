@@ -74,9 +74,16 @@ def optimal_transport_sort(
     diagnostics : OptimalTransportDiagnostics (optional)
         Diagnostics including the doubly stochastic transport matrix.
     """
+    # Red-team input validation
+    if epsilon <= 0:
+        raise ValueError(f"epsilon must be positive, got {epsilon}")
+    if tol <= 0:
+        raise ValueError(f"tol must be positive, got {tol}")
+    if max_iters <= 0:
+        raise ValueError(f"max_iters must be a positive integer, got {max_iters}")
+
     vals = np.asarray(values, dtype=float)
     
-    # Red-team input validation
     if vals.ndim != 1:
         raise ValueError(f"Input must be a 1-dimensional array, got {vals.ndim}D shape {vals.shape}")
     if not np.all(np.isfinite(vals)):

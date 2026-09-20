@@ -117,9 +117,18 @@ def brockett_sort(
     diagnostics : BrockettDiagnostics (optional)
         Convergence and trajectory metrics.
     """
+    # Red-team input validation
+    if dt is not None and dt <= 0:
+        raise ValueError(f"dt must be positive, got {dt}")
+    if max_steps <= 0:
+        raise ValueError(f"max_steps must be a positive integer, got {max_steps}")
+    if tol <= 0:
+        raise ValueError(f"tol must be positive, got {tol}")
+    if init_method not in ("orthogonal", "tridiagonal_perturbation"):
+        raise ValueError(f"Unknown init_method '{init_method}'. Expected 'orthogonal' or 'tridiagonal_perturbation'.")
+
     vals = np.asarray(values, dtype=float)
     
-    # Red-team input validation
     if vals.ndim != 1:
         raise ValueError(f"Input must be a 1-dimensional array, got {vals.ndim}D shape {vals.shape}")
     if not np.all(np.isfinite(vals)):
@@ -162,7 +171,8 @@ def brockett_sort(
             return vals.copy(), diag
         return vals.copy()
 
-    # Ill-conditioned check: if range ratio > 1000 and auto preconditioning is enabled
+    # Dynamic range conditioning: when spectrum condition number spans > 1000:1,
+    # map to rank-space to prevent IEEE 754 floating-point underflow/cancellation.
     if precondition == "auto":
         sorted_copy = np.sort(vals)
         diffs = np.diff(sorted_copy)
@@ -182,8 +192,7 @@ def brockett_sort(
                 return sorted_vals.copy(), diag
             return sorted_vals.copy()
 
-    # Subnormal / extreme scale normalization
-    # Scales values to O(1) to avoid underflow/overflow in Lie algebra operations
+    # Scale normalization to O(1) to avoid underflow/overflow in Lie algebra operations
     scale = val_scale if val_scale > 0 else 1.0
     normalized_vals = vals / scale
 
