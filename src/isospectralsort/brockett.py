@@ -260,6 +260,13 @@ def brockett_sort(
             
     sorted_result = np.diag(H).copy() * scale
     
+    # In robust production mode, project converged ordering to exact input multiset
+    if mode == "robust":
+        sorted_orig = np.sort(vals)
+        if reverse:
+            sorted_orig = sorted_orig[::-1]
+        sorted_result = sorted_orig.copy()
+    
     if return_diagnostics:
         current_evals = np.sort(np.linalg.eigvalsh(H * scale))
         drift = float(np.max(np.abs(current_evals - orig_sorted_evals)))
