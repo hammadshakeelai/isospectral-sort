@@ -44,7 +44,8 @@ def optimal_transport_sort(
     max_iters: int = 1500,
     tol: float = 1e-3,
     return_diagnostics: bool = False,
-    soft: bool = False
+    soft: bool = False,
+    mode: str = "robust"
 ) -> Union[np.ndarray, Tuple[np.ndarray, OptimalTransportDiagnostics]]:
     """
     Sort an array using entropic-regularized Monge-Kantorovich optimal transport.
@@ -66,6 +67,12 @@ def optimal_transport_sort(
     soft : bool, default=False
         If True, return differentiable soft-sorted values (P^T @ x).
         If False, return exact discrete sorted values via collision-free rank projection.
+    mode : {'pure', 'robust'}, default='robust'
+        - 'pure': Pure continuous Monge-Kantorovich transport. Multiplies input values
+                  directly by the doubly stochastic transport coupling matrix P^T @ x
+                  (smooth differentiable sorting, zero discrete argsort).
+        - 'robust': Production assignment projecting continuous transport ranks into
+                    an exact discrete permutation.
         
     Returns
     -------
@@ -74,6 +81,8 @@ def optimal_transport_sort(
     diagnostics : OptimalTransportDiagnostics (optional)
         Diagnostics including the doubly stochastic transport matrix.
     """
+    if mode not in ("pure", "robust"):
+        raise ValueError(f"mode must be 'pure' or 'robust', got '{mode}'")
     # Red-team input validation
     if epsilon <= 0:
         raise ValueError(f"epsilon must be positive, got {epsilon}")
@@ -167,7 +176,7 @@ def optimal_transport_sort(
     col_sums[col_sums < 1e-30] = 1.0
     P /= col_sums
 
-    if soft:
+    if soft or mode == "pure":
         sorted_result = P.T @ vals
     else:
         # Collision-free rank expectation projection

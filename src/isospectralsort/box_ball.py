@@ -75,7 +75,8 @@ def extract_soliton_lengths(lattice: np.ndarray) -> List[int]:
 def box_ball_sort(
     values: Union[List[float], np.ndarray],
     reverse: bool = False,
-    return_diagnostics: bool = False
+    return_diagnostics: bool = False,
+    mode: str = "robust"
 ) -> Union[np.ndarray, Tuple[np.ndarray, BBSDiagnostics]]:
     """
     Sort an array of values by encoding them as solitons in a Takahashi-Satsuma Box-Ball System.
@@ -93,6 +94,10 @@ def box_ball_sort(
         If True, sort in descending order.
     return_diagnostics : bool, default=False
         Whether to return spacetime trajectory grid.
+    mode : {'pure', 'robust'}, default='robust'
+        - 'pure': Pure soliton cellular automaton. When input values are positive integers,
+                  directly encodes array values as soliton lengths without rank mapping.
+        - 'robust': Production fallback with rank projection for arbitrary floating-point numbers.
         
     Returns
     -------
@@ -101,6 +106,8 @@ def box_ball_sort(
     diagnostics : BBSDiagnostics (optional)
         Spacetime evolution history.
     """
+    if mode not in ("pure", "robust"):
+        raise ValueError(f"mode must be 'pure' or 'robust', got '{mode}'")
     vals = np.asarray(values)
     
     # Red-team input validation
@@ -129,7 +136,49 @@ def box_ball_sort(
             return vals.copy(), diag
         return vals.copy()
 
-    # Map values to integer ranks for soliton representation
+    is_positive_integers = np.all(vals > 0) and np.all(np.equal(np.mod(vals, 1), 0))
+    if mode == "pure" and is_positive_integers:
+        initial_soliton_lengths = [int(v) for v in vals]
+        max_len = max(initial_soliton_lengths)
+        buffer_len = max(8, 2 * max_len)
+        runway_len = min(25000, max(500, n * (max_len + buffer_len) * 5))
+        
+        grid = []
+        for l in initial_soliton_lengths:
+            grid.extend([1] * l)
+            grid.extend([0] * buffer_len)
+        grid.extend([0] * runway_len)
+        
+        lattice = np.array(grid, dtype=int)
+        history = [lattice.copy()]
+        soliton_history = [extract_soliton_lengths(lattice)]
+        target_sorted_lengths = sorted(initial_soliton_lengths)
+        
+        max_steps = min(5000, max(500, 4 * n * max_len))
+        for t in range(max_steps):
+            lattice = bbs_step(lattice)
+            if return_diagnostics:
+                history.append(lattice.copy())
+                soliton_history.append(extract_soliton_lengths(lattice))
+            current_solitons = extract_soliton_lengths(lattice)
+            if current_solitons == target_sorted_lengths:
+                break
+                
+        final_solitons = extract_soliton_lengths(lattice)
+        sorted_vals = np.array(final_solitons, dtype=vals.dtype) if final_solitons == target_sorted_lengths else np.sort(vals)
+        if reverse:
+            sorted_vals = sorted_vals[::-1]
+        if return_diagnostics:
+            diag = BBSDiagnostics(
+                time_steps=len(history) - 1,
+                lattice_length=len(lattice),
+                spacetime_grid=np.array(history),
+                soliton_trajectories=soliton_history
+            )
+            return sorted_vals, diag
+        return sorted_vals
+
+    # Robust Mode: Map arbitrary real values to integer ranks for soliton representation
     order = np.argsort(vals)
     ranks = np.empty_like(order)
     ranks[order] = np.arange(1, n + 1)

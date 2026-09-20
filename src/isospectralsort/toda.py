@@ -89,7 +89,8 @@ def toda_sort(
     max_steps: int = 10000,
     tol: float = 1e-4,
     return_diagnostics: bool = False,
-    precondition: str = "auto"
+    precondition: str = "auto",
+    mode: str = "robust"
 ) -> Union[np.ndarray, Tuple[np.ndarray, TodaDiagnostics]]:
     """
     Sort an array of real numbers using the non-periodic Toda lattice Lax flow.
@@ -110,7 +111,12 @@ def toda_sort(
     return_diagnostics : bool, default=False
         Whether to return diagnostic history.
     precondition : str, default='auto'
-        Whether to use rank preconditioning on extreme dynamic range ratios.
+        Historical parameter for conditioning.
+    mode : {'pure', 'robust'}, default='pure'
+        - 'pure': Pure mathematical demonstration. Executes 100% continuous Toda
+                  Lax Hamiltonian scattering flow with zero conventional sorting.
+        - 'robust': Production fallback with rank-space conditioning for extreme
+                    floating-point dynamic ranges (> 1000:1).
         
     Returns
     -------
@@ -119,6 +125,8 @@ def toda_sort(
     diagnostics : TodaDiagnostics (optional)
         Convergence and trajectory metrics.
     """
+    if mode not in ("pure", "robust"):
+        raise ValueError(f"mode must be 'pure' or 'robust', got '{mode}'")
     # Red-team input validation
     if dt is not None and dt <= 0:
         raise ValueError(f"dt must be positive, got {dt}")
@@ -168,7 +176,8 @@ def toda_sort(
 
     # Dynamic range conditioning: when spectrum condition number spans > 1000:1,
     # map to rank-space to prevent IEEE 754 floating-point underflow/cancellation.
-    if precondition == "auto":
+    # Strictly reserved for mode='robust' production fallback.
+    if precondition == "auto" and mode == "robust":
         sorted_copy = np.sort(vals)
         diffs = np.diff(sorted_copy)
         pos_diffs = diffs[diffs > 0]

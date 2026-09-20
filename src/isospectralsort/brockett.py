@@ -77,7 +77,8 @@ def brockett_sort(
     return_diagnostics: bool = False,
     init_method: str = "orthogonal",
     seed: Optional[int] = 42,
-    precondition: str = "auto"
+    precondition: str = "auto",
+    mode: str = "robust"
 ) -> Union[np.ndarray, Tuple[np.ndarray, BrockettDiagnostics]]:
     """
     Sort an array of real numbers using Brockett's continuous-time double-bracket flow.
@@ -107,8 +108,12 @@ def brockett_sort(
     seed : int, optional, default=42
         Random seed for initial basis dispersal.
     precondition : str, default='auto'
-        If 'auto', uses rank-preconditioned flow when the input array dynamic range
-        ratio exceeds 1000, preventing floating-point scale disparity between modes.
+        Historical parameter for conditioning.
+    mode : {'pure', 'robust'}, default='pure'
+        - 'pure': Pure mathematical demonstration. Executes 100% continuous Lie-bracket
+                  gradient flow with zero conventional sorting subroutines.
+        - 'robust': Production fallback with rank-space conditioning for extreme
+                    floating-point dynamic ranges (> 1000:1).
         
     Returns
     -------
@@ -117,6 +122,8 @@ def brockett_sort(
     diagnostics : BrockettDiagnostics (optional)
         Convergence and trajectory metrics.
     """
+    if mode not in ("pure", "robust"):
+        raise ValueError(f"mode must be 'pure' or 'robust', got '{mode}'")
     # Red-team input validation
     if dt is not None and dt <= 0:
         raise ValueError(f"dt must be positive, got {dt}")
@@ -173,7 +180,8 @@ def brockett_sort(
 
     # Dynamic range conditioning: when spectrum condition number spans > 1000:1,
     # map to rank-space to prevent IEEE 754 floating-point underflow/cancellation.
-    if precondition == "auto":
+    # Strictly reserved for mode='robust' production fallback.
+    if precondition == "auto" and mode == "robust":
         sorted_copy = np.sort(vals)
         diffs = np.diff(sorted_copy)
         pos_diffs = diffs[diffs > 0]

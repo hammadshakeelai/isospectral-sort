@@ -1,6 +1,6 @@
 # IsospectralSort: Continuous Dynamical & Geometric Sorting Systems
 
-[![Tests](https://img.shields.io/badge/tests-99%20passed%20(100%25)-success?style=for-the-badge&logo=pytest)](tests/)
+[![Tests](https://img.shields.io/badge/tests-102%20passed%20(100%25)-success?style=for-the-badge&logo=pytest)](tests/)
 [![Python](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue?style=for-the-badge&logo=python)](pyproject.toml)
 [![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)](LICENSE)
 [![Mathematics](https://img.shields.io/badge/pure-mathematics-indigo?style=for-the-badge&logo=latex)](papers/)
@@ -10,7 +10,7 @@
   <img src="assets/isospectral_hero_banner.jpg" alt="IsospectralSort Hero Banner" width="100%" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" />
 </p>
 
-> **A production-grade Python package and research suite implementing the continuous, physical, and geometric sorting algorithms of pure mathematics — completely devoid of discrete comparisons, branch conditions, or pairwise swaps.**
+> **A production-grade Python package and research suite implementing continuous dynamical systems, Lie-algebraic flows, and geometric transport algorithms for sorting — replacing comparison-swap trees with continuous physical equations of motion.**
 
 ---
 
@@ -140,7 +140,7 @@ An ultradiscretization of the continuous KdV equation using tropical max-plus al
 ### Installation
 
 ```bash
-git clone https://github.com/username/isospectral-sort.git
+git clone https://github.com/hammadshakeelai/isospectral-sort.git
 cd isospectral-sort
 pip install -e .
 ```
