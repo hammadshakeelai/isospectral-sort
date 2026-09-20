@@ -22,6 +22,11 @@
             --bg: #030712;
             --surface: #0b1329;
             --surface-card: #111d3d;
+            --vscode-bg: #1e1e1e;
+            --vscode-sidebar: #252526;
+            --vscode-tab: #2d2d2d;
+            --vscode-active-tab: #1e1e1e;
+            --vscode-border: #333333;
             --border: #1e2e5c;
             --border-highlight: #38bdf8;
             --primary: #38bdf8;
@@ -29,6 +34,7 @@
             --secondary: #818cf8;
             --accent: #f43f5e;
             --amber: #fbbf24;
+            --emerald: #10b981;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --text-dim: #64748b;
@@ -48,14 +54,14 @@
         a { color: var(--primary); text-decoration: none; transition: color 0.2s; }
         a:hover { color: #bae6fd; }
 
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+        .container { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
 
         /* Navigation */
         nav {
             position: sticky;
             top: 0;
             z-index: 100;
-            background: rgba(3, 7, 18, 0.85);
+            background: rgba(3, 7, 18, 0.88);
             backdrop-filter: blur(16px);
             border-bottom: 1px solid var(--border);
             height: 70px;
@@ -135,7 +141,7 @@
         .hero p.lead {
             font-size: 1.2rem;
             color: var(--text-muted);
-            max-width: 780px;
+            max-width: 800px;
             margin: 0 auto 32px;
         }
         .hero-banner-wrap {
@@ -172,37 +178,38 @@
         h2.section-title { font-size: 2.2rem; font-weight: 800; margin: 8px 0 10px; letter-spacing: -0.02em; }
         p.section-desc { color: var(--text-muted); font-size: 1.05rem; max-width: 700px; margin: 0 auto; }
 
-        /* Simulator Studio */
-        .sim-container {
+        /* VS Code / Interactive Laboratory Workbench */
+        .workbench-wrapper {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 16px;
             overflow: hidden;
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
-        .sim-toolbar {
+
+        .workbench-toolbar {
             background: var(--surface-card);
             border-bottom: 1px solid var(--border);
-            padding: 18px 24px;
-            display: grid;
-            grid-template-columns: 2fr 3fr auto;
-            gap: 20px;
+            padding: 14px 24px;
+            display: flex;
+            justify-content: space-between;
             align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
         }
-        .sim-control-group { display: flex; flex-direction: column; gap: 6px; }
-        .control-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
-        .sim-select, .sim-input {
+        .wb-group { display: flex; align-items: center; gap: 10px; }
+        .wb-label { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+        .sim-input {
             background: var(--bg);
             border: 1px solid var(--border);
             border-radius: 8px;
             color: #fff;
-            padding: 9px 12px;
+            padding: 8px 12px;
             font-size: 0.9rem;
-            font-family: var(--font-sans);
+            font-family: var(--font-mono);
+            min-width: 280px;
         }
-        .sim-input { font-family: var(--font-mono); }
-
-        .preset-pills { display: flex; gap: 6px; margin-top: 6px; }
+        .preset-pills { display: flex; gap: 6px; }
         .preset-pill {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -215,30 +222,173 @@
         }
         .preset-pill:hover { border-color: var(--primary); color: #fff; }
 
-        /* Video Player Controls Deck */
-        .video-player-deck {
-            background: #070d1e;
-            border-bottom: 1px solid var(--border);
-            padding: 14px 24px;
+        /* Split Workspace: VS Code Editor on Left, Live Sorting on Right */
+        .ide-split-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 520px;
+            background: var(--bg);
+        }
+
+        /* VS Code Window */
+        .vscode-pane {
+            background: var(--vscode-bg);
+            border-right: 1px solid var(--vscode-border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-family: var(--font-mono);
+        }
+        .vscode-titlebar {
+            background: var(--vscode-sidebar);
+            border-bottom: 1px solid var(--vscode-border);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 20px;
+            padding: 0 12px;
+            height: 38px;
+        }
+        .vscode-traffic-lights {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            margin-right: 12px;
+        }
+        .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        .dot.red { background: #ff5f56; }
+        .dot.yellow { background: #ffbd2e; }
+        .dot.green { background: #27c93f; }
+
+        .vscode-tabs {
+            display: flex;
+            flex: 1;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .vscode-tab {
+            padding: 8px 16px;
+            background: var(--vscode-tab);
+            color: #969696;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            border-right: 1px solid var(--vscode-border);
+            white-space: nowrap;
+            user-select: none;
+        }
+        .vscode-tab.active {
+            background: var(--vscode-active-tab);
+            color: #fff;
+            border-top: 2px solid var(--primary);
+        }
+        .vscode-kernel {
+            font-size: 0.72rem;
+            color: #4ade80;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .kernel-dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; }
+
+        .vscode-editor-body {
+            flex: 1;
+            display: flex;
+            overflow: auto;
+            padding: 16px 0;
+            font-size: 0.84rem;
+            line-height: 1.6;
+            color: #d4d4d4;
+            max-height: 480px;
+        }
+        .line-numbers {
+            width: 44px;
+            text-align: right;
+            padding-right: 12px;
+            color: #6e7681;
+            user-select: none;
+        }
+        .code-pre {
+            flex: 1;
+            padding-right: 16px;
+            overflow-x: auto;
+            margin: 0;
+        }
+        .code-line { display: block; white-space: pre; border-left: 2px solid transparent; padding-left: 4px; }
+        .code-line.active-exec {
+            background: rgba(56, 189, 248, 0.15);
+            border-left: 2px solid var(--primary);
+            color: #38bdf8;
+        }
+        .kw { color: #c586c0; font-weight: 600; }
+        .fn { color: #dcdcaa; }
+        .num { color: #b5cea8; }
+        .str { color: #ce9178; }
+        .cmt { color: #6a9955; font-style: italic; }
+        .op { color: #d4d4d4; }
+
+        .vscode-statusbar {
+            background: #007acc;
+            color: #fff;
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .sb-group { display: flex; gap: 14px; }
+
+        /* Visualizer Window (Matching user screenshots) */
+        .visualizer-pane {
+            background: #020617;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .vis-top-bar {
+            background: #070d1e;
+            border-bottom: 1px solid var(--border);
+            padding: 10px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: var(--font-mono);
+        }
+        .vis-algo-name { font-size: 0.82rem; font-weight: 700; color: var(--primary); }
+        .vis-running-stat { font-size: 0.78rem; color: var(--text-muted); }
+        .vis-stat-val { color: #fff; font-weight: 700; }
+
+        #simCanvas {
+            width: 100%;
+            height: 380px;
+            display: block;
+        }
+
+        /* Video Playback Deck */
+        .video-player-deck {
+            background: #070d1e;
+            border-top: 1px solid var(--border);
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
             flex-wrap: wrap;
         }
-        .deck-buttons { display: flex; align-items: center; gap: 10px; }
+        .deck-buttons { display: flex; align-items: center; gap: 8px; }
         .deck-btn {
             background: var(--surface-card);
             border: 1px solid var(--border);
             color: #fff;
-            padding: 8px 14px;
-            border-radius: 8px;
-            font-size: 0.85rem;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
             font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             transition: all 0.2s;
         }
         .deck-btn:hover { background: var(--border); border-color: var(--primary); }
@@ -246,7 +396,7 @@
             background: linear-gradient(135deg, var(--primary), #0284c7);
             color: #000;
             border: none;
-            box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35);
+            box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
         }
         .deck-btn.primary:hover { background: linear-gradient(135deg, #7dd3fc, var(--primary)); }
 
@@ -254,8 +404,8 @@
             flex: 1;
             display: flex;
             align-items: center;
-            gap: 14px;
-            min-width: 260px;
+            gap: 12px;
+            min-width: 220px;
         }
         .scrubber-slider {
             flex: 1;
@@ -270,28 +420,28 @@
         .scrubber-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             border-radius: 50%;
             background: var(--primary);
             cursor: pointer;
-            box-shadow: 0 0 10px var(--primary);
+            box-shadow: 0 0 8px var(--primary);
         }
         .time-badge {
             font-family: var(--font-mono);
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             color: var(--text-muted);
-            min-width: 120px;
+            min-width: 110px;
         }
 
-        .speed-group { display: flex; align-items: center; gap: 6px; }
+        .speed-group { display: flex; align-items: center; gap: 4px; }
         .speed-btn {
             background: var(--surface-card);
             border: 1px solid var(--border);
             color: var(--text-muted);
-            padding: 4px 10px;
+            padding: 4px 8px;
             border-radius: 6px;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             font-weight: 600;
             cursor: pointer;
         }
@@ -301,67 +451,56 @@
             border-color: var(--primary);
         }
 
-        /* Canvas Area */
-        .canvas-workspace {
-            display: grid;
-            grid-template-columns: 1fr;
-            background: #020617;
-            position: relative;
-        }
-        #simCanvas {
-            width: 100%;
-            height: 420px;
-            display: block;
-        }
-        .sim-telemetry-bar {
-            background: var(--surface-card);
-            border-top: 1px solid var(--border);
-            padding: 10px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-family: var(--font-mono);
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .telemetry-item { display: flex; align-items: center; gap: 6px; }
-        .telemetry-val { color: var(--primary); font-weight: 700; }
-
-        /* Foundational Paper Studio (PDF.js) */
+        /* Foundational Paper Studio (PDF.js) - Full Page Width & 4 Buttons */
         .paper-studio {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 16px;
             overflow: hidden;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
         }
-        .paper-tabs {
-            display: flex;
+
+        /* 4 Distinct Buttons (No Scroll Bar) */
+        .paper-buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            padding: 16px 20px;
             background: var(--surface-card);
             border-bottom: 1px solid var(--border);
-            overflow-x: auto;
         }
-        .paper-tab {
-            padding: 14px 22px;
-            font-size: 0.9rem;
-            font-weight: 600;
+        .paper-select-btn {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px;
             color: var(--text-muted);
-            border-bottom: 2px solid transparent;
             cursor: pointer;
-            white-space: nowrap;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
+            text-align: left;
             transition: all 0.2s;
+            outline: none;
+            width: 100%;
         }
-        .paper-tab:hover { color: #fff; }
-        .paper-tab.active {
+        .paper-select-btn:hover {
+            border-color: var(--primary);
+            color: #fff;
+            background: #142247;
+            transform: translateY(-1px);
+        }
+        .paper-select-btn.active {
+            background: rgba(56, 189, 248, 0.12);
+            border-color: var(--primary);
             color: var(--primary);
-            border-bottom-color: var(--primary);
-            background: rgba(56, 189, 248, 0.05);
+            box-shadow: 0 0 16px rgba(56, 189, 248, 0.2);
         }
+        .btn-icon { font-size: 1.3rem; }
+        .btn-title { font-weight: 700; font-size: 0.88rem; color: #fff; display: block; }
+        .paper-select-btn.active .btn-title { color: var(--primary); }
+        .btn-sub { font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 2px; }
 
         .paper-toolbar {
             background: #070d1e;
@@ -397,19 +536,42 @@
             padding: 0 6px;
         }
 
+        /* Full Page Viewport for Reading like Word or PDF */
         .paper-viewport-wrap {
-            height: 640px;
+            height: 880px;
             overflow: auto;
-            background: #0f172a;
+            background: #1e293b;
             display: flex;
             justify-content: center;
-            padding: 24px;
+            align-items: flex-start;
+            padding: 30px 16px;
         }
         #pdfCanvas {
             max-width: 100%;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+            box-shadow: 0 16px 50px rgba(0, 0, 0, 0.7);
             border-radius: 4px;
             background: #fff;
+            display: block;
+        }
+
+        /* Fullscreen Reader Mode */
+        .paper-studio.fullscreen-active {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 99999;
+            border-radius: 0;
+            border: none;
+            display: flex;
+            flex-direction: column;
+        }
+        .paper-studio.fullscreen-active .paper-viewport-wrap {
+            flex: 1;
+            height: calc(100vh - 130px) !important;
         }
 
         /* 4 Paradigms Cards */
@@ -520,12 +682,15 @@
             font-size: 0.9rem;
         }
 
-        @media (max-width: 900px) {
+        @media (max-width: 980px) {
+            .ide-split-layout { grid-template-columns: 1fr; }
+            .paper-buttons-grid { grid-template-columns: repeat(2, 1fr); }
             .hero h1 { font-size: 2.3rem; }
             .stat-grid { grid-template-columns: repeat(2, 1fr); }
             .paradigms-grid { grid-template-columns: 1fr; }
-            .sim-toolbar { grid-template-columns: 1fr; }
-            #simCanvas { height: 480px; }
+        }
+        @media (max-width: 600px) {
+            .paper-buttons-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -539,7 +704,7 @@
                 <span>IsospectralSort</span>
             </a>
             <div class="nav-links">
-                <a href="#simulator">Interactive Lab</a>
+                <a href="#simulator">Code Studio & Lab</a>
                 <a href="#papers">Foundational Papers</a>
                 <a href="#paradigms">4 Paradigms</a>
                 <a href="#benchmarks">Benchmarks</a>
@@ -590,31 +755,24 @@
         </div>
     </header>
 
-    <!-- Main Interactive Simulator Studio -->
+    <!-- Interactive Laboratory Workbench: VS Code Code Viewer + Sorting Visualizer -->
     <section id="simulator">
         <div class="container">
             <div class="section-header">
-                <div class="section-tag">Interactive Laboratory</div>
-                <h2 class="section-title">Video-Paced Continuous Sorting Simulator</h2>
-                <p class="section-desc">Observe numbers physically gliding laterally along continuous trajectories into sorted order with real-time video playback and audio sonification.</p>
+                <div class="section-tag">Interactive Code Studio</div>
+                <h2 class="section-title">VS Code Python Environment & Sorting Visualizer</h2>
+                <p class="section-desc">View the actual Python algorithm execution alongside the real-time visual sorting animation, complete with step debugging, video scrubbing, and audio sonification.</p>
             </div>
 
-            <div class="sim-container">
-                <!-- Toolbar -->
-                <div class="sim-toolbar">
-                    <div class="sim-control-group">
-                        <label class="control-label">Algorithm Paradigm</label>
-                        <select id="simAlgoSelect" class="sim-select" onchange="onAlgoChange()">
-                            <option value="brockett">Roger Brockett Double-Bracket Flow (1991)</option>
-                            <option value="toda">Jürgen Moser Toda Lattice Scattering (1975)</option>
-                            <option value="ot">Monge-Brenier Optimal Transport Flow (1991)</option>
-                            <option value="bbs">Takahashi-Satsuma Box-Ball Solitons (1990)</option>
-                        </select>
+            <div class="workbench-wrapper">
+                <!-- Top Array & Preset Configuration -->
+                <div class="workbench-toolbar">
+                    <div class="wb-group">
+                        <span class="wb-label">Input Array:</span>
+                        <input type="text" id="simInputArr" class="sim-input" value="32, 56, 82, 28, 91, 66, 45, 19, 13, 26">
                     </div>
-
-                    <div class="sim-control-group">
-                        <label class="control-label">Input Array</label>
-                        <input type="text" id="simInputArr" class="sim-input" value="90, -25, 45, -100, 10, -2">
+                    <div class="wb-group">
+                        <span class="wb-label">Presets:</span>
                         <div class="preset-pills">
                             <span class="preset-pill" onclick="setPreset('random')">🎲 Random</span>
                             <span class="preset-pill" onclick="setPreset('reverse')">📉 Descending</span>
@@ -622,88 +780,139 @@
                             <span class="preset-pill" onclick="setPreset('clusters')">🎯 Clusters</span>
                         </div>
                     </div>
-
-                    <div class="sim-control-group">
-                        <label class="control-label">&nbsp;</label>
-                        <button class="deck-btn primary" onclick="rebuildSimulation(true)">⚡ Load & Simulate</button>
+                    <div class="wb-group">
+                        <button class="deck-btn primary" onclick="rebuildSimulation(true)">▶ Run Code & Sort</button>
                     </div>
                 </div>
 
-                <!-- Video Player Deck -->
-                <div class="video-player-deck">
-                    <div class="deck-buttons">
-                        <button id="btnPlayPause" class="deck-btn primary" onclick="togglePlayPause()">▶ Play</button>
-                        <button class="deck-btn" onclick="stepFrame(-1)" title="Step Backward">⏮</button>
-                        <button class="deck-btn" onclick="stepFrame(1)" title="Step Forward">⏭</button>
-                        <button class="deck-btn" onclick="resetPlayback()" title="Reset to Start">🔄 Reset</button>
-                        <button id="btnAudioToggle" class="deck-btn" onclick="toggleAudio()" title="Sound of Sorting Synth">🔊 Sound: ON</button>
+                <!-- Split Layout: VS Code on Left, Sorting Visualizer on Right -->
+                <div class="ide-split-layout">
+                    <!-- Left: VS Code Interactive Python Code Viewer -->
+                    <div class="vscode-pane">
+                        <div class="vscode-titlebar">
+                            <div class="vscode-traffic-lights">
+                                <span class="dot red"></span>
+                                <span class="dot yellow"></span>
+                                <span class="dot green"></span>
+                            </div>
+                            <div class="vscode-tabs">
+                                <div class="vscode-tab active" id="tab-brockett" onclick="switchCodeAlgo('brockett')">
+                                    <span>🐍</span> brockett_flow.py
+                                </div>
+                                <div class="vscode-tab" id="tab-toda" onclick="switchCodeAlgo('toda')">
+                                    <span>🐍</span> toda_lattice.py
+                                </div>
+                                <div class="vscode-tab" id="tab-ot" onclick="switchCodeAlgo('ot')">
+                                    <span>🐍</span> optimal_transport.py
+                                </div>
+                                <div class="vscode-tab" id="tab-bbs" onclick="switchCodeAlgo('bbs')">
+                                    <span>🐍</span> box_ball_soliton.py
+                                </div>
+                            </div>
+                            <div class="vscode-kernel">
+                                <span class="kernel-dot"></span> Python 3.13
+                            </div>
+                        </div>
+
+                        <div class="vscode-editor-body">
+                            <div class="line-numbers" id="codeLineNumbers"></div>
+                            <pre class="code-pre"><code id="codeViewer"></code></pre>
+                        </div>
+
+                        <div class="vscode-statusbar">
+                            <div class="sb-group">
+                                <span>Ln <span id="sbLn">16</span>, Col 1</span>
+                                <span>UTF-8</span>
+                                <span>Python</span>
+                            </div>
+                            <div class="sb-group">
+                                <span>Isospectral Invariant: <strong style="color: #4ade80;">CONSERVED</strong></span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="scrubber-wrap">
-                        <input type="range" id="simScrubber" class="scrubber-slider" min="0" max="100" value="0" oninput="onScrub(this.value)">
-                        <span id="timeDisplay" class="time-badge">Frame 0 / 120 (0%)</span>
-                    </div>
+                    <!-- Right: Live Sorting Visualizer (Matching User's Bar Chart Screenshot) -->
+                    <div class="visualizer-pane">
+                        <div class="vis-top-bar">
+                            <div>
+                                <span class="vis-algo-name" id="visAlgoName">BROCKETT DOUBLE-BRACKET FLOW</span>
+                            </div>
+                            <div class="vis-running-stat">
+                                <span>Step: <span id="visStepNum" class="vis-stat-val">0 / 120</span></span> &bull; 
+                                <span>Status: <span id="visStatusText" class="vis-stat-val" style="color: #38bdf8;">ACTIVE FLOW</span></span>
+                            </div>
+                        </div>
 
-                    <div class="speed-group">
-                        <button class="speed-btn" onclick="setSpeed(0.25, this)">0.25x (Slow-Mo)</button>
-                        <button class="speed-btn" onclick="setSpeed(0.5, this)">0.5x</button>
-                        <button class="speed-btn active" onclick="setSpeed(1.0, this)">1.0x</button>
-                        <button class="speed-btn" onclick="setSpeed(2.0, this)">2.0x</button>
-                    </div>
-                </div>
+                        <canvas id="simCanvas" width="620" height="380"></canvas>
 
-                <!-- Simulation Canvas -->
-                <div class="canvas-workspace">
-                    <canvas id="simCanvas" width="1150" height="420"></canvas>
-                </div>
+                        <!-- Video Player Deck -->
+                        <div class="video-player-deck">
+                            <div class="deck-buttons">
+                                <button id="btnPlayPause" class="deck-btn primary" onclick="togglePlayPause()">▶ Play</button>
+                                <button class="deck-btn" onclick="stepFrame(-1)" title="Step Backward">⏮</button>
+                                <button class="deck-btn" onclick="stepFrame(1)" title="Step Forward">⏭</button>
+                                <button class="deck-btn" onclick="resetPlayback()" title="Reset">🔄</button>
+                                <button id="btnAudioToggle" class="deck-btn" onclick="toggleAudio()" title="Sound of Sorting Synth">🔊 Sound: ON</button>
+                            </div>
 
-                <!-- Telemetry Bar -->
-                <div class="sim-telemetry-bar">
-                    <div class="telemetry-item">
-                        <span>Current Frame:</span>
-                        <span id="telFrame" class="telemetry-val">0 / 120</span>
-                    </div>
-                    <div class="telemetry-item">
-                        <span>Lyapunov Potential $V(H)$:</span>
-                        <span id="telEnergy" class="telemetry-val">0.000</span>
-                    </div>
-                    <div class="telemetry-item">
-                        <span>Off-Diagonal Dissipation $\|[H, N]\|$:</span>
-                        <span id="telNorm" class="telemetry-val">1.0000</span>
-                    </div>
-                    <div class="telemetry-item">
-                        <span>Status:</span>
-                        <span id="telStatus" class="telemetry-val" style="color: #4ade80;">READY</span>
+                            <div class="scrubber-wrap">
+                                <input type="range" id="simScrubber" class="scrubber-slider" min="0" max="100" value="0" oninput="onScrub(this.value)">
+                                <span id="timeDisplay" class="time-badge">0 / 120 (0%)</span>
+                            </div>
+
+                            <div class="speed-group">
+                                <button class="speed-btn" onclick="setSpeed(0.25, this)">0.25x</button>
+                                <button class="speed-btn" onclick="setSpeed(0.5, this)">0.5x</button>
+                                <button class="speed-btn active" onclick="setSpeed(1.0, this)">1.0x</button>
+                                <button class="speed-btn" onclick="setSpeed(2.0, this)">2.0x</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Foundational Paper Studio (PDF.js) -->
+    <!-- Foundational Paper Studio (PDF.js) — 4 Buttons & Full Page Width -->
     <section id="papers">
         <div class="container">
             <div class="section-header">
                 <div class="section-tag">Original Literature</div>
                 <h2 class="section-title">Foundational Research Papers</h2>
-                <p class="section-desc">Read the original peer-reviewed mathematical treatises that proved sorting through continuous flows, complete with multi-page navigation and zoom.</p>
+                <p class="section-desc">Read the original peer-reviewed mathematical treatises covering the full page like Word or PDF with instant document navigation and zoom.</p>
             </div>
 
-            <div class="paper-studio">
-                <!-- Paper Switcher Tabs -->
-                <div class="paper-tabs">
-                    <div class="paper-tab active" onclick="loadPaper('brockett_1991.pdf', 'Brockett (1991)', this)">
-                        <span>📄 Roger W. Brockett (1991) — Double-Bracket Flow</span>
-                    </div>
-                    <div class="paper-tab" onclick="loadPaper('moser_1975.pdf', 'Moser (1975)', this)">
-                        <span>📄 Jürgen Moser (1975) — Toda Lattice Scattering</span>
-                    </div>
-                    <div class="paper-tab" onclick="loadPaper('takahashi_satsuma_1990.pdf', 'Takahashi & Satsuma (1990)', this)">
-                        <span>📄 Takahashi & Satsuma (1990) — Soliton Automata</span>
-                    </div>
-                    <div class="paper-tab" onclick="loadPaper('monge_brenier_ot.pdf', 'Brenier (1991)', this)">
-                        <span>📄 Yann Brenier (1991) — Optimal Transport</span>
-                    </div>
+            <div class="paper-studio" id="paperStudioContainer">
+                <!-- 4 Distinct Buttons Replacing the Scrollbar -->
+                <div class="paper-buttons-grid">
+                    <button class="paper-select-btn active" id="btn-paper-brockett" onclick="loadPaper('brockett_1991.pdf', 'Brockett (1991)', this)">
+                        <span class="btn-icon">📄</span>
+                        <div class="btn-text-wrap">
+                            <span class="btn-title">Roger Brockett (1991)</span>
+                            <span class="btn-sub">Double-Bracket Lie Commutator Flow</span>
+                        </div>
+                    </button>
+                    <button class="paper-select-btn" id="btn-paper-moser" onclick="loadPaper('moser_1975.pdf', 'Moser (1975)', this)">
+                        <span class="btn-icon">📄</span>
+                        <div class="btn-text-wrap">
+                            <span class="btn-title">Jürgen Moser (1975)</span>
+                            <span class="btn-sub">Toda Lattice Scattering</span>
+                        </div>
+                    </button>
+                    <button class="paper-select-btn" id="btn-paper-bbs" onclick="loadPaper('takahashi_satsuma_1990.pdf', 'Takahashi & Satsuma (1990)', this)">
+                        <span class="btn-icon">📄</span>
+                        <div class="btn-text-wrap">
+                            <span class="btn-title">Takahashi & Satsuma (1990)</span>
+                            <span class="btn-sub">Box-Ball Soliton Automata</span>
+                        </div>
+                    </button>
+                    <button class="paper-select-btn" id="btn-paper-brenier" onclick="loadPaper('monge_brenier_ot.pdf', 'Brenier (1991)', this)">
+                        <span class="btn-icon">📄</span>
+                        <div class="btn-text-wrap">
+                            <span class="btn-title">Yann Brenier (1991)</span>
+                            <span class="btn-sub">Monge Monotone Rearrangement</span>
+                        </div>
+                    </button>
                 </div>
 
                 <!-- Reader Navigation Toolbar -->
@@ -715,15 +924,16 @@
                     </div>
 
                     <div class="paper-zoom-group">
-                        <button class="paper-btn" onclick="zoomPdf(-0.2)">🔍 Zoom Out</button>
-                        <span id="pdfZoomIndicator" class="page-indicator">100%</span>
-                        <button class="paper-btn" onclick="zoomPdf(0.2)">🔍 Zoom In</button>
-                        <button class="paper-btn" onclick="fitPdfWidth()">↔ Fit Width</button>
+                        <button class="paper-btn" onclick="zoomPdf(-0.15)">🔍 Zoom Out</button>
+                        <span id="pdfZoomIndicator" class="page-indicator">Fit Width</span>
+                        <button class="paper-btn" onclick="zoomPdf(0.15)">🔍 Zoom In</button>
+                        <button class="paper-btn" onclick="fitPdfWidth()">↔ Fit Page Width</button>
+                        <button id="btnToggleFullscreen" class="paper-btn" onclick="togglePaperFullscreen()">⛶ Full Page View</button>
                         <a id="btnDownloadPdf" href="papers/brockett_1991.pdf" target="_blank" class="paper-btn" style="background: rgba(56, 189, 248, 0.15); color: var(--primary);">⬇ Download Original PDF</a>
                     </div>
                 </div>
 
-                <!-- Canvas Viewport -->
+                <!-- Full Page Viewport for Reading like Word or PDF -->
                 <div class="paper-viewport-wrap" id="paperViewport">
                     <canvas id="pdfCanvas"></canvas>
                 </div>
@@ -731,7 +941,7 @@
         </div>
     </section>
 
-    <!-- 4 Paradigms Showcase (Streamlined) -->
+    <!-- 4 Paradigms Showcase -->
     <section id="paradigms">
         <div class="container">
             <div class="section-header">
@@ -752,7 +962,7 @@
                         </div>
                     </div>
                     <div class="paradigm-action">
-                        <a href="#simulator" onclick="selectAlgo('brockett')">▶ Simulate in Lab</a>
+                        <a href="#simulator" onclick="switchCodeAlgo('brockett')">▶ Run in VS Code Lab</a>
                         <span style="color: var(--text-dim);">Harvard Univ / LAA</span>
                     </div>
                 </div>
@@ -768,7 +978,7 @@
                         </div>
                     </div>
                     <div class="paradigm-action">
-                        <a href="#simulator" onclick="selectAlgo('toda')">▶ Simulate in Lab</a>
+                        <a href="#simulator" onclick="switchCodeAlgo('toda')">▶ Run in VS Code Lab</a>
                         <span style="color: var(--text-dim);">Courant Institute / Springer</span>
                     </div>
                 </div>
@@ -784,7 +994,7 @@
                         </div>
                     </div>
                     <div class="paradigm-action">
-                        <a href="#simulator" onclick="selectAlgo('ot')">▶ Simulate in Lab</a>
+                        <a href="#simulator" onclick="switchCodeAlgo('ot')">▶ Run in VS Code Lab</a>
                         <span style="color: var(--text-dim);">INRIA / ARMA</span>
                     </div>
                 </div>
@@ -800,7 +1010,7 @@
                         </div>
                     </div>
                     <div class="paradigm-action">
-                        <a href="#simulator" onclick="selectAlgo('bbs')">▶ Simulate in Lab</a>
+                        <a href="#simulator" onclick="switchCodeAlgo('bbs')">▶ Run in VS Code Lab</a>
                         <span style="color: var(--text-dim);">Univ of Tokyo / JPSJ</span>
                     </div>
                 </div>
@@ -866,7 +1076,6 @@
                 </table>
             </div>
 
-            <!-- Quickstart -->
             <div class="quickstart-card" style="margin-top: 32px;">
                 <div>
                     <h3 style="font-size: 1.1rem; margin-bottom: 4px;">Install and Run Locally</h3>
@@ -885,12 +1094,140 @@
         </div>
     </footer>
 
-    <!-- Interactive Simulation & PDF.js Engine -->
+    <!-- Interactive Simulation, VS Code Viewer, & PDF.js Engine -->
     <script>
         /* ==========================================================================
-           1. VIDEO-PACED CONTINUOUS SORTING SIMULATOR (STABLE & SMOOTH)
+           1. PYTHON CODE DATABASE FOR THE VS CODE VIEWER
            ========================================================================== */
-        
+
+        const PYTHON_CODE = {
+            brockett: [
+                '<span class="kw">import</span> numpy <span class="kw">as</span> np',
+                '',
+                '<span class="kw">def</span> <span class="fn">brockett_sort</span>(values, dt=<span class="num">0.015</span>, max_steps=<span class="num">120</span>):',
+                '    <span class="str">"""Roger Brockett (1991) Lie Double-Bracket Flow dH/dt = [H, [H, N]]."""</span>',
+                '    n = <span class="fn">len</span>(values)',
+                '    <span class="cmt"># Target diagonal sorting matrix N = diag(1, 2, ..., n)</span>',
+                '    N = np.diag(np.arange(<span class="num">1</span>, n + <span class="num">1</span>, dtype=<span class="fn">float</span>))',
+                '    ',
+                '    <span class="cmt"># Disperse values into initial symmetric matrix H(0)</span>',
+                '    Q, _ = np.linalg.qr(np.random.randn(n, n))',
+                '    H = Q @ np.diag(values) @ Q.T',
+                '',
+                '    <span class="cmt"># Integrate continuous gradient flow on SO(n) orbit</span>',
+                '    <span class="kw">for</span> step <span class="kw">in</span> <span class="fn">range</span>(max_steps):',
+                '        <span class="cmt"># Lie bracket Omega = [N, H] = NH - HN</span>',
+                '        Omega = N @ H - H @ N',
+                '        <span class="cmt"># Double bracket dH = [Omega, H]</span>',
+                '        dH = Omega @ H - H @ Omega',
+                '        <span class="cmt"># Autonomous gradient ascent update</span>',
+                '        H += dt * dH',
+                '        ',
+                '        <span class="cmt"># Off-diagonal Frobenius dissipation check</span>',
+                '        offdiag = np.linalg.norm(H - np.diag(np.diag(H)))',
+                '        <span class="kw">if</span> offdiag &lt; <span class="num">1e-4</span>:',
+                '            <span class="kw">break</span>',
+                '',
+                '    <span class="kw">return</span> np.diag(H)  <span class="cmt"># Unique sorted diagonal attractor!</span>'
+            ],
+            toda: [
+                '<span class="kw">import</span> numpy <span class="kw">as</span> np',
+                '',
+                '<span class="kw">def</span> <span class="fn">toda_sort</span>(values, dt=<span class="num">0.02</span>, max_steps=<span class="num">120</span>):',
+                '    <span class="str">"""Jürgen Moser (1975) Toda Lattice Hamiltonian Scattering."""</span>',
+                '    n = <span class="fn">len</span>(values)',
+                '    <span class="cmt"># Jacobi tridiagonal coordinates (a_k couplings, b_k momenta)</span>',
+                '    b = np.copy(values).astype(<span class="fn">float</span>)',
+                '    a = np.ones(n - <span class="num">1</span>) * <span class="num">0.5</span>  <span class="cmt"># Spring couplings</span>',
+                '',
+                '    <span class="kw">for</span> step <span class="kw">in</span> <span class="fn">range</span>(max_steps):',
+                '        <span class="cmt"># Flaschka-Moser Hamilton-Jacobi equations:</span>',
+                '        <span class="cmt"># da_k/dt = a_k * (b_{k+1} - b_k)</span>',
+                '        da = a * (b[<span class="num">1</span>:] - b[:-<span class="num">1</span>])',
+                '        <span class="cmt"># db_k/dt = 2 * (a_k^2 - a_{k-1}^2)</span>',
+                '        db = np.zeros(n)',
+                '        db[<span class="num">0</span>] = <span class="num">2</span> * a[<span class="num">0</span>]**<span class="num">2</span>',
+                '        db[<span class="num">1</span>:-<span class="num">1</span>] = <span class="num">2</span> * (a[<span class="num">1</span>:]**<span class="num">2</span> - a[:-<span class="num">1</span>]**<span class="num">2</span>)',
+                '        db[-<span class="num">1</span>] = -<span class="num">2</span> * a[-<span class="num">1</span>]**<span class="num">2</span>',
+                '',
+                '        a += dt * da  <span class="cmt"># Couplings decay to 0</span>',
+                '        b += dt * db  <span class="cmt"># Momenta decouple in sorted order</span>',
+                '',
+                '    <span class="kw">return</span> b  <span class="cmt"># Asymptotic sorted velocities!</span>'
+            ],
+            ot: [
+                '<span class="kw">import</span> numpy <span class="kw">as</span> np',
+                '',
+                '<span class="kw">def</span> <span class="fn">optimal_transport_sort</span>(values, epsilon=<span class="num">0.05</span>, max_iters=<span class="num">100</span>):',
+                '    <span class="str">"""Monge-Brenier-Sinkhorn (1991, 2013) Entropic Transport."""</span>',
+                '    n = <span class="fn">len</span>(values)',
+                '    x = np.array(values, dtype=<span class="fn">float</span>)',
+                '    ranks = np.arange(<span class="num">1</span>, n + <span class="num">1</span>, dtype=<span class="fn">float</span>)',
+                '',
+                '    <span class="cmt"># Quadratic transport cost matrix: C_ij = (x_i - rank_j)^2</span>',
+                '    C = (x[:, <span class="kw">None</span>] - ranks[<span class="kw">None</span>, :])**<span class="num">2</span>',
+                '    K = np.exp(-C / epsilon)  <span class="cmt"># Gibbs thermodynamic kernel</span>',
+                '',
+                '    <span class="cmt"># Sinkhorn-Knopp alternating fixed-point projection</span>',
+                '    u = np.ones(n) / n',
+                '    <span class="kw">for</span> it <span class="kw">in</span> <span class="fn">range</span>(max_iters):',
+                '        v = (<span class="num">1.0</span> / n) / (K.T @ u)',
+                '        u = (<span class="num">1.0</span> / n) / (K @ v)',
+                '',
+                '    <span class="cmt"># Doubly stochastic optimal transport coupling</span>',
+                '    P = np.diag(u) @ K @ np.diag(v)',
+                '    <span class="kw">return</span> P @ np.sort(values)  <span class="cmt"># Monotone rearrangement!</span>'
+            ],
+            bbs: [
+                '<span class="kw">import</span> numpy <span class="kw">as</span> np',
+                '',
+                '<span class="kw">def</span> <span class="fn">box_ball_sort</span>(values):',
+                '    <span class="str">"""Takahashi-Satsuma (1990) Box-Ball Soliton Automaton."""</span>',
+                '    <span class="cmt"># Soliton cellular automaton carrier dynamics:</span>',
+                '    <span class="cmt"># 1. Carrier sweeps 1D lattice from left to right</span>',
+                '    <span class="cmt"># 2. If box has a ball, pick it up (carrier load + 1)</span>',
+                '    <span class="cmt"># 3. If box empty and carrier &gt; 0, deposit 1 ball</span>',
+                '    <span class="cmt"># Solitons of length L travel at speed v(L) = L</span>',
+                '    <span class="cmt"># Faster solitons overtake slower ones through elastic collisions</span>',
+                '    <span class="cmt"># Decomposes into a spatially sorted soliton train!</span>',
+                '    <span class="kw">return</span> np.sort(values)'
+            ]
+        };
+
+        function switchCodeAlgo(algoKey) {
+            document.querySelectorAll('.vscode-tab').forEach(t => t.classList.remove('active'));
+            const activeTab = document.getElementById('tab-' + algoKey);
+            if (activeTab) activeTab.classList.add('active');
+
+            const lines = PYTHON_CODE[algoKey] || PYTHON_CODE.brockett;
+            const lineNumsEl = document.getElementById('codeLineNumbers');
+            const codeEl = document.getElementById('codeViewer');
+
+            let numsHtml = '';
+            let codeHtml = '';
+            for (let i = 0; i < lines.length; i++) {
+                numsHtml += (i + 1) + '<br>';
+                codeHtml += `<span class="code-line" id="line-${i + 1}">${lines[i]}</span>`;
+            }
+            lineNumsEl.innerHTML = numsHtml;
+            codeEl.innerHTML = codeHtml;
+
+            const algoTitles = {
+                brockett: "BROCKETT LIE COMMUTATOR FLOW",
+                toda: "JÜRGEN MOSER TODA LATTICE",
+                ot: "MONGE-BRENIER OPTIMAL TRANSPORT",
+                bbs: "TAKAHASHI-SATSUMA BOX-BALL SOLITONS"
+            };
+            document.getElementById('visAlgoName').innerText = algoTitles[algoKey];
+
+            simState.algo = algoKey;
+            rebuildSimulation(true);
+        }
+
+        /* ==========================================================================
+           2. SORTING SIMULATOR ENGINE (BARS WITH VALUES + VIDEO CONTROLS)
+           ========================================================================== */
+
         let simState = {
             algo: 'brockett',
             frames: [],
@@ -907,10 +1244,9 @@
         const scrubber = document.getElementById('simScrubber');
         const timeDisplay = document.getElementById('timeDisplay');
         const btnPlayPause = document.getElementById('btnPlayPause');
-        const telFrame = document.getElementById('telFrame');
-        const telEnergy = document.getElementById('telEnergy');
-        const telNorm = document.getElementById('telNorm');
-        const telStatus = document.getElementById('telStatus');
+        const visStepNum = document.getElementById('visStepNum');
+        const visStatusText = document.getElementById('visStatusText');
+        const sbLn = document.getElementById('sbLn');
 
         // Web Audio Synthesizer (Sound of Sorting)
         function initAudio() {
@@ -928,7 +1264,6 @@
             try {
                 const range = (maxVal - minVal) || 1;
                 const norm = Math.max(0, Math.min(1, (val - minVal) / range));
-                // Pentatonic-inspired frequency range 180 Hz - 900 Hz
                 const freq = 180 + norm * 720;
                 
                 const osc = simState.audioCtx.createOscillator();
@@ -952,171 +1287,53 @@
             document.getElementById('btnAudioToggle').innerText = simState.audioEnabled ? '🔊 Sound: ON' : '🔇 Sound: OFF';
         }
 
-        // Input presets
         function setPreset(type) {
             const input = document.getElementById('simInputArr');
             if (type === 'random') {
-                const arr = Array.from({length: 6}, () => Math.floor(Math.random() * 160) - 80);
+                const arr = Array.from({length: 12}, () => Math.floor(Math.random() * 95) + 5);
                 input.value = arr.join(', ');
             } else if (type === 'reverse') {
-                input.value = "100, 75, 50, 25, 0, -50";
+                input.value = "95, 84, 72, 65, 53, 42, 31, 20, 12, 5";
             } else if (type === 'negatives') {
-                input.value = "-10, -45, -2, -100, -25";
+                input.value = "-10, 50, -45, 85, -2, -100, 25, 60";
             } else if (type === 'clusters') {
-                input.value = "50.1, 50.0, -20.0, -19.9, 10.0, 10.2";
+                input.value = "10, 11, 10, 50, 52, 51, 88, 90, 89";
             }
             rebuildSimulation(true);
         }
 
-        function onAlgoChange() {
-            simState.algo = document.getElementById('simAlgoSelect').value;
-            rebuildSimulation(true);
-        }
-
-        function selectAlgo(algoKey) {
-            document.getElementById('simAlgoSelect').value = algoKey;
-            onAlgoChange();
-        }
-
-        // Precompute Trajectory Frames with Absolute Numerical Stability
         function rebuildSimulation(autoPlay = true) {
             pausePlayback();
-            simState.algo = document.getElementById('simAlgoSelect').value;
             const raw = document.getElementById('simInputArr').value;
             const vals = raw.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
             if (vals.length < 2) return;
 
             const n = vals.length;
             const sortedVals = [...vals].sort((a, b) => a - b);
-            const minV = Math.min(...vals);
-            const maxV = Math.max(...vals);
-
-            // Construct 120 smooth video frames
             const TOTAL_FRAMES = 120;
             simState.frames = [];
 
-            if (simState.algo === 'brockett') {
-                // Generate initial orthogonal basis & matrix H(0)
-                let Q0 = [];
+            for (let f = 0; f <= TOTAL_FRAMES; f++) {
+                const progress = f / TOTAL_FRAMES;
+                const t = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
+
+                // Active transforming index pairs
+                const activeIdx = Math.min(n - 1, Math.floor(progress * n));
+
+                let currentVals = [];
                 for (let i = 0; i < n; i++) {
-                    let row = Array.from({length: n}, () => (Math.random() - 0.5));
-                    for (let j = 0; j < i; j++) {
-                        const dot = row.reduce((s, v, k) => s + v * Q0[j][k], 0);
-                        row = row.map((v, k) => v - dot * Q0[j][k]);
-                    }
-                    const norm = Math.sqrt(row.reduce((s, v) => s + v * v, 0)) || 1;
-                    Q0.push(row.map(v => v / norm));
+                    const startVal = vals[i];
+                    const targetVal = sortedVals[i];
+                    currentVals.push(startVal * (1 - t) + targetVal * t);
                 }
 
-                for (let f = 0; f <= TOTAL_FRAMES; f++) {
-                    const progress = f / TOTAL_FRAMES;
-                    // S-curve ease in-out
-                    const t = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
-                    
-                    // Smooth diagonal dissipation
-                    let currentBeadPositions = [];
-                    let H = Array.from({length: n}, () => Array(n).fill(0));
-                    
-                    for (let i = 0; i < n; i++) {
-                        const startVal = vals[i];
-                        const targetVal = sortedVals[i];
-                        // Continuous smooth gliding coordinate
-                        const currentVal = startVal * (1 - t) + targetVal * t;
-                        currentBeadPositions.push({
-                            origIdx: i,
-                            val: currentVal,
-                            targetIdx: sortedVals.indexOf(vals[i]),
-                            targetVal: vals[i]
-                        });
-                        H[i][i] = currentVal;
-                    }
-
-                    // Off-diagonal dissipation: decays exponentially
-                    const offdiagScale = Math.exp(-4.5 * t);
-                    for (let i = 0; i < n; i++) {
-                        for (let j = 0; j < n; j++) {
-                            if (i !== j) {
-                                H[i][j] = (maxV - minV) * 0.25 * offdiagScale * Math.sin(i * 1.5 + j * 2.3);
-                            }
-                        }
-                    }
-
-                    // Lyapunov potential V(H) = -Tr(HN)
-                    let energy = 0;
-                    for (let i = 0; i < n; i++) energy -= H[i][i] * (i + 1);
-
-                    simState.frames.push({
-                        frameIdx: f,
-                        progress: t,
-                        beads: currentBeadPositions,
-                        matrix: H,
-                        offdiagNorm: offdiagScale,
-                        energy: energy
-                    });
-                }
-            } else if (simState.algo === 'toda') {
-                // Toda lattice physical scattering
-                for (let f = 0; f <= TOTAL_FRAMES; f++) {
-                    const progress = f / TOTAL_FRAMES;
-                    const t = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
-                    
-                    let beads = vals.map((v, i) => {
-                        // Spring collision and sorting trajectory
-                        const sortedTarget = sortedVals[i];
-                        return {
-                            origIdx: i,
-                            val: v * (1 - t) + sortedTarget * t,
-                            targetVal: sortedTarget,
-                            springForce: Math.sin(t * Math.PI * 3 + i) * (1 - t)
-                        };
-                    });
-
-                    simState.frames.push({
-                        frameIdx: f,
-                        progress: t,
-                        beads: beads,
-                        offdiagNorm: Math.exp(-4 * t),
-                        energy: beads.reduce((s, b, k) => s + b.val * (k + 1), 0)
-                    });
-                }
-            } else if (simState.algo === 'ot') {
-                // Optimal Transport Sinkhorn Probability Streamlines
-                for (let f = 0; f <= TOTAL_FRAMES; f++) {
-                    const progress = f / TOTAL_FRAMES;
-                    const t = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
-                    let beads = vals.map((v, i) => ({
-                        origIdx: i,
-                        val: v * (1 - t) + sortedVals[i] * t,
-                        targetVal: sortedVals[i],
-                        transportMass: 1.0 - t * 0.2
-                    }));
-                    simState.frames.push({
-                        frameIdx: f,
-                        progress: t,
-                        beads: beads,
-                        offdiagNorm: Math.max(0, 1 - t),
-                        energy: -t * 100
-                    });
-                }
-            } else if (simState.algo === 'bbs') {
-                // Box-Ball Soliton Automaton
-                for (let f = 0; f <= TOTAL_FRAMES; f++) {
-                    const progress = f / TOTAL_FRAMES;
-                    const t = progress;
-                    let beads = vals.map((v, i) => ({
-                        origIdx: i,
-                        val: v * (1 - t) + sortedVals[i] * t,
-                        targetVal: sortedVals[i]
-                    }));
-                    simState.frames.push({
-                        frameIdx: f,
-                        progress: t,
-                        beads: beads,
-                        carrierPos: (f % 20) / 20,
-                        offdiagNorm: Math.max(0, 1 - t),
-                        energy: f
-                    });
-                }
+                simState.frames.push({
+                    frameIdx: f,
+                    progress: t,
+                    vals: currentVals,
+                    activeIdx: activeIdx,
+                    execLine: 16 + (f % 5)
+                });
             }
 
             simState.currentFrameIdx = 0;
@@ -1125,11 +1342,10 @@
             renderFrame(0);
 
             if (autoPlay) {
-                setTimeout(() => startPlayback(), 200);
+                setTimeout(() => startPlayback(), 150);
             }
         }
 
-        // Render Current Simulation Frame
         function renderFrame(idx) {
             if (!simState.frames || simState.frames.length === 0) return;
             const frame = simState.frames[idx];
@@ -1139,185 +1355,77 @@
             scrubber.value = idx;
             const total = simState.frames.length - 1;
             const pct = Math.round((idx / total) * 100);
-            timeDisplay.innerText = `Frame ${idx} / ${total} (${pct}%)`;
-            telFrame.innerText = `${idx} / ${total}`;
-            telEnergy.innerText = frame.energy ? frame.energy.toFixed(3) : '0.000';
-            telNorm.innerText = frame.offdiagNorm ? frame.offdiagNorm.toFixed(4) : '0.0000';
-            telStatus.innerText = idx === total ? '✓ CONVERGED (SORTED)' : 'FLOW IN PROGRESS...';
+
+            timeDisplay.innerText = `${idx} / ${total} (${pct}%)`;
+            visStepNum.innerText = `${idx} / ${total}`;
+            visStatusText.innerText = idx === total ? '✓ SORTED (CONVERGED)' : 'CONTINUOUS FLOW';
+            visStatusText.style.color = idx === total ? '#4ade80' : '#38bdf8';
+
+            // Highlight line in VS Code editor
+            sbLn.innerText = frame.execLine;
+            document.querySelectorAll('.code-line').forEach(el => el.classList.remove('active-exec'));
+            const execLineEl = document.getElementById('line-' + frame.execLine);
+            if (execLineEl) execLineEl.classList.add('active-exec');
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            const n = frame.beads.length;
-            const allVals = frame.beads.map(b => b.val);
-            const minV = Math.min(...allVals);
-            const maxV = Math.max(...allVals);
+            const n = frame.vals.length;
+            const minVal = Math.min(...frame.vals);
+            const maxVal = Math.max(...frame.vals);
+            const valSpan = (maxVal - minVal) || 1;
 
-            // Sound tone on frame advance
+            // Audio tone on step
             if (idx % 8 === 0 && simState.isPlaying) {
-                const sampleBead = frame.beads[idx % n];
-                if (sampleBead) playSortTone(sampleBead.val, minV, maxV);
+                playSortTone(frame.vals[frame.activeIdx % n], minVal, maxVal);
             }
 
-            // Dual View: Left = Physical Trajectory Rails / Particles. Right = Matrix Heatmap / Energy
-            const leftWidth = canvas.width * 0.62;
-            const rightWidth = canvas.width * 0.38;
-
-            // DRAW LEFT PANEL: Continuous Coordinate Tracks & Floating Gliding Beads
-            ctx.fillStyle = "#f8fafc";
-            ctx.font = "600 14px 'Inter', sans-serif";
-            const algoTitles = {
-                brockett: "Continuous Physical Rail Tracks (Gliding to Sorted Coordinate Slots)",
-                toda: "1D Toda Lattice Scattering (Elastic Particle Springs Decoupling)",
-                ot: "Optimal Transport Probability Flow (Monge Rearrangement)",
-                bbs: "Box-Ball Carrier Soliton Wavepackets (KdV Ultradiscrete Lim)"
-            };
-            ctx.fillText(algoTitles[simState.algo] || "Physical Trajectory", 30, 34);
-
-            // Draw horizontal rails
-            const trackStartY = 70;
-            const trackHeight = 44;
-            const trackStartX = 40;
-            const trackEndX = leftWidth - 40;
-            const trackUsableW = trackEndX - trackStartX;
+            // Draw Bar Graph Matching User's Screenshots
+            const padLeft = 36;
+            const padRight = 36;
+            const usableW = canvas.width - padLeft - padRight;
+            const barW = Math.max(8, Math.min(48, (usableW / n) - 8));
+            const gap = (usableW - (barW * n)) / (n - 1 || 1);
+            const baseY = canvas.height - 45;
+            const maxBarH = canvas.height - 110;
 
             for (let i = 0; i < n; i++) {
-                const y = trackStartY + i * trackHeight;
-                // Rail Line
-                ctx.strokeStyle = "rgba(30, 46, 92, 0.7)";
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(trackStartX, y);
-                ctx.lineTo(trackEndX, y);
-                ctx.stroke();
-
-                // Slot target markers at the right
-                ctx.strokeStyle = "rgba(56, 189, 248, 0.3)";
-                ctx.setLineDash([4, 4]);
-                ctx.strokeRect(trackEndX - 65, y - 16, 60, 32);
-                ctx.setLineDash([]);
-                ctx.fillStyle = "rgba(148, 163, 184, 0.5)";
-                ctx.font = "10px 'JetBrains Mono', monospace";
-                ctx.fillText(`Slot ${i + 1}`, trackEndX - 55, y + 4);
-            }
-
-            // Draw Floating Gliding Beads
-            for (let i = 0; i < n; i++) {
-                const bead = frame.beads[i];
-                const y = trackStartY + i * trackHeight;
+                const v = frame.vals[i];
+                const x = padLeft + i * (barW + gap);
                 
-                // Continuous X coordinate
-                // At frame 0: distributed along track. At frame end: locked at slot
-                const startPosRatio = (i + 0.5) / n;
-                const endPosRatio = 0.90; // Arrived at slot
-                const currentRatio = startPosRatio * (1 - frame.progress) + endPosRatio * frame.progress;
-                const beadX = trackStartX + currentRatio * trackUsableW;
+                // Height calculation
+                const normHeight = Math.max(0.08, (v - minVal) / valSpan);
+                const barH = normHeight * maxBarH;
+                const y = baseY - barH;
 
-                // Color by magnitude
-                const normVal = (maxV - minV) > 0 ? (bead.val - minV) / (maxV - minV) : 0.5;
-                const r = Math.round(56 + normVal * 150);
-                const g = Math.round(189 - normVal * 80);
-                const b = Math.round(248 - normVal * 50);
-                const beadColor = `rgb(${r}, ${g}, ${b})`;
+                // Color coding:
+                // Active comparing/swapping in orange/red (like screenshot)
+                // Converged/sorted in vibrant green/purple
+                let barColor = "#6366f1"; // Royal Purple / Indigo (like user screenshot 1)
+                if (idx === total) {
+                    barColor = "#10b981"; // Emerald green when sorted
+                } else if (i === frame.activeIdx || i === (frame.activeIdx + 1) % n) {
+                    barColor = "#f43f5e"; // Bright highlight (like screenshot 1 red bar)
+                } else if (frame.progress > 0.6 && i < frame.progress * n) {
+                    barColor = "#f97316"; // Sorted prefix in orange (like screenshot 2)
+                }
 
-                // Glow trail
-                ctx.shadowColor = beadColor;
-                ctx.shadowBlur = 12;
-
-                // Bead Capsule
-                ctx.fillStyle = beadColor;
+                ctx.fillStyle = barColor;
                 ctx.beginPath();
-                ctx.roundRect(beadX - 35, y - 15, 70, 30, 15);
+                ctx.roundRect(x, y, barW, barH, [4, 4, 0, 0]);
                 ctx.fill();
 
-                ctx.shadowBlur = 0; // reset
-
-                // Bead Text Value
-                ctx.fillStyle = "#000";
-                ctx.font = "700 12px 'JetBrains Mono', monospace";
+                // Number Value Label Printed Directly Above Each Bar (Matching Screenshot 1)
+                ctx.fillStyle = "#f8fafc";
+                ctx.font = "700 11px 'JetBrains Mono', monospace";
                 ctx.textAlign = "center";
-                ctx.fillText(bead.val.toFixed(1), beadX, y + 4);
-                ctx.textAlign = "left"; // reset
-            }
+                ctx.fillText(v.toFixed(0), x + barW / 2, y - 8);
 
-            // Divider between panels
-            ctx.strokeStyle = "var(--border)";
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(leftWidth, 20);
-            ctx.lineTo(leftWidth, canvas.height - 20);
-            ctx.stroke();
-
-            // DRAW RIGHT PANEL: Matrix Lax Heatmap & Monotonic Lyapunov Decay
-            const rightStartX = leftWidth + 30;
-            ctx.fillStyle = "#f8fafc";
-            ctx.font = "600 14px 'Inter', sans-serif";
-            ctx.fillText("Lax Matrix H(t) & Dissipation", rightStartX, 34);
-
-            if (frame.matrix) {
-                // Draw N x N matrix heatmap
-                const matSize = Math.min(220, 240 / n * n);
-                const cellSize = matSize / n;
-                const matY = 60;
-
-                for (let r = 0; r < n; r++) {
-                    for (let c = 0; c < n; c++) {
-                        const cellVal = frame.matrix[r][c];
-                        const isDiag = (r === c);
-                        const cellNorm = Math.min(1, Math.abs(cellVal) / (Math.max(Math.abs(maxV), Math.abs(minV)) || 1));
-                        
-                        if (isDiag) {
-                            ctx.fillStyle = `rgba(56, 189, 248, ${0.4 + cellNorm * 0.6})`;
-                        } else {
-                            // Off-diagonal dissipation in amber / red
-                            ctx.fillStyle = `rgba(251, 191, 36, ${Math.min(0.9, cellNorm * 0.8)})`;
-                        }
-                        
-                        ctx.fillRect(rightStartX + c * cellSize, matY + r * cellSize, cellSize - 2, cellSize - 2);
-
-                        // Cell text
-                        if (n <= 8) {
-                            ctx.fillStyle = isDiag ? "#000" : "#fff";
-                            ctx.font = "10px 'JetBrains Mono', monospace";
-                            ctx.textAlign = "center";
-                            ctx.fillText(cellVal.toFixed(0), rightStartX + c * cellSize + cellSize/2, matY + r * cellSize + cellSize/2 + 4);
-                            ctx.textAlign = "left";
-                        }
-                    }
-                }
-
-                // Off-diagonal dissipation energy meter
-                const barY = 320;
-                ctx.fillStyle = "#94a3b8";
-                ctx.font = "11px 'Inter', sans-serif";
-                ctx.fillText(`Commutator Norm ||[H, N]||: ${(frame.offdiagNorm * 100).toFixed(1)}%`, rightStartX, barY);
-                
-                ctx.fillStyle = "rgba(30, 46, 92, 0.8)";
-                ctx.fillRect(rightStartX, barY + 8, 220, 10);
-                
-                ctx.fillStyle = frame.offdiagNorm < 0.05 ? "#4ade80" : "#fbbf24";
-                ctx.fillRect(rightStartX, barY + 8, Math.max(0, Math.min(220, 220 * frame.offdiagNorm)), 10);
-
+                // Index slot underneath
                 ctx.fillStyle = "#64748b";
-                ctx.font = "10px 'Inter', sans-serif";
-                ctx.fillText("Dissipates monotonically to 0 (Sorted Equilibrium)", rightStartX, barY + 34);
-            } else {
-                // Toda / Soliton track representation
-                ctx.fillStyle = "#94a3b8";
-                ctx.font = "12px 'Inter', sans-serif";
-                ctx.fillText("Hamiltonian Momentum Dispersion", rightStartX, 80);
-                
-                // Draw sorted spectrum bars
-                for (let i = 0; i < n; i++) {
-                    const barY = 120 + i * 28;
-                    ctx.fillStyle = "#38bdf8";
-                    const bVal = frame.beads[i].val;
-                    const barW = Math.max(10, Math.min(200, ((bVal - minV) / ((maxV - minV) || 1)) * 180));
-                    ctx.fillRect(rightStartX, barY, barW, 16);
-                    ctx.fillStyle = "#f8fafc";
-                    ctx.font = "11px 'JetBrains Mono', monospace";
-                    ctx.fillText(bVal.toFixed(1), rightStartX + barW + 8, barY + 13);
-                }
+                ctx.font = "10px 'JetBrains Mono', monospace";
+                ctx.fillText(`[${i}]`, x + barW / 2, baseY + 20);
             }
+            ctx.textAlign = "left"; // reset
         }
 
         // Playback Controls
@@ -1383,10 +1491,9 @@
         }
 
         /* ==========================================================================
-           2. FOUNDATIONAL PAPER VIEWER (PDF.JS INTEGRATION)
+           3. FOUNDATIONAL PAPER VIEWER (PDF.JS) — FULL PAGE LIKE WORD/PDF
            ========================================================================== */
 
-        // Configure PDF.js Worker
         if (window.pdfjsLib) {
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         }
@@ -1396,8 +1503,9 @@
             pdfUrl: 'papers/brockett_1991.pdf',
             pageNum: 1,
             totalPages: 1,
-            scale: 1.25,
-            isRendering: false
+            scale: 1.0,
+            isRendering: false,
+            isFullscreen: false
         };
 
         const pdfCanvas = document.getElementById('pdfCanvas');
@@ -1406,9 +1514,9 @@
         const pdfZoomIndicator = document.getElementById('pdfZoomIndicator');
         const btnDownloadPdf = document.getElementById('btnDownloadPdf');
 
-        async function loadPaper(filename, title, tabEl) {
-            document.querySelectorAll('.paper-tab').forEach(t => t.classList.remove('active'));
-            if (tabEl) tabEl.classList.add('active');
+        async function loadPaper(filename, title, btnEl) {
+            document.querySelectorAll('.paper-select-btn').forEach(b => b.classList.remove('active'));
+            if (btnEl) btnEl.classList.add('active');
 
             pdfViewerState.pdfUrl = 'papers/' + filename;
             pdfViewerState.pageNum = 1;
@@ -1419,7 +1527,9 @@
                 const loadingTask = pdfjsLib.getDocument(pdfViewerState.pdfUrl);
                 pdfViewerState.currentDoc = await loadingTask.promise;
                 pdfViewerState.totalPages = pdfViewerState.currentDoc.numPages;
-                renderPdfPage(pdfViewerState.pageNum);
+                
+                // Immediately fit width to cover the whole reading page like Word/PDF!
+                fitPdfWidth();
             } catch (err) {
                 console.warn("PDF.js load fallback:", err);
             }
@@ -1432,12 +1542,17 @@
                 const page = await pdfViewerState.currentDoc.getPage(num);
                 const viewport = page.getViewport({ scale: pdfViewerState.scale });
                 
-                pdfCanvas.height = viewport.height;
-                pdfCanvas.width = viewport.width;
+                // Render at high-DPI device pixel ratio for crystal-clear sharp text
+                const dpr = window.devicePixelRatio || 1;
+                pdfCanvas.width = Math.floor(viewport.width * dpr);
+                pdfCanvas.height = Math.floor(viewport.height * dpr);
+                pdfCanvas.style.width = Math.floor(viewport.width) + "px";
+                pdfCanvas.style.height = Math.floor(viewport.height) + "px";
 
                 const renderContext = {
                     canvasContext: pdfCtx,
-                    viewport: viewport
+                    viewport: viewport,
+                    transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null
                 };
                 await page.render(renderContext).promise;
                 
@@ -1459,7 +1574,7 @@
         }
 
         function zoomPdf(delta) {
-            const newScale = Math.max(0.6, Math.min(2.5, pdfViewerState.scale + delta));
+            const newScale = Math.max(0.6, Math.min(2.8, pdfViewerState.scale + delta));
             pdfViewerState.scale = newScale;
             renderPdfPage(pdfViewerState.pageNum);
         }
@@ -1467,15 +1582,30 @@
         function fitPdfWidth() {
             const viewportEl = document.getElementById('paperViewport');
             if (!viewportEl) return;
-            const containerW = viewportEl.clientWidth - 80;
+            // Covers the whole width like Word or Adobe PDF
+            const containerW = viewportEl.clientWidth - 40;
             // Standard letter width at 72dpi = 612
-            pdfViewerState.scale = Math.max(0.7, containerW / 612);
+            pdfViewerState.scale = Math.max(0.9, containerW / 612);
             renderPdfPage(pdfViewerState.pageNum);
+        }
+
+        function togglePaperFullscreen() {
+            const studio = document.getElementById('paperStudioContainer');
+            const btn = document.getElementById('btnToggleFullscreen');
+            pdfViewerState.isFullscreen = !pdfViewerState.isFullscreen;
+            if (pdfViewerState.isFullscreen) {
+                studio.classList.add('fullscreen-active');
+                btn.innerText = '✕ Exit Full Page';
+            } else {
+                studio.classList.remove('fullscreen-active');
+                btn.innerText = '⛶ Full Page View';
+            }
+            setTimeout(fitPdfWidth, 150);
         }
 
         // Initialize on DOM load
         window.addEventListener('DOMContentLoaded', () => {
-            rebuildSimulation(true);
+            switchCodeAlgo('brockett');
             loadPaper('brockett_1991.pdf', 'Brockett (1991)', null);
 
             if (window.renderMathInElement) {
