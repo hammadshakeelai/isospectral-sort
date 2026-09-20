@@ -131,24 +131,24 @@ def optimal_transport_sort(
         return vals.copy()
 
     # Scale normalization to avoid subnormal or overflow issues
-    scale = val_scale if val_scale > 0 else 1.0
-    normalized_vals = vals / scale
-    std_val = float(np.std(normalized_vals))
-    if std_val < 1e-12:
-        std_val = 1.0
-    x_norm = (normalized_vals - np.mean(normalized_vals)) / std_val
+    val_spread = float(np.ptp(vals))
+    span = val_spread if val_spread > 0 else 1.0
+    x_norm = (vals - np.min(vals)) / span
     
-    # Target ranks
+    # Target ranks normalized to [0, 1]
     if reverse:
-        ranks = np.arange(n, 0, -1, dtype=float)
+        ranks_norm = np.linspace(1.0, 0.0, n)
     else:
-        ranks = np.arange(1, n + 1, dtype=float)
-    ranks_norm = (ranks - np.mean(ranks)) / np.std(ranks)
+        ranks_norm = np.linspace(0.0, 1.0, n)
     
-    # Cost matrix derived from Rearrangement Inequality:
-    C = -np.outer(x_norm, ranks_norm)
-    min_C = np.min(C)
-    K = np.exp(-(C - min_C) / epsilon)
+    # Brenier's Theorem (1991, Theorem 1.1) quadratic ground cost: C_ij = (x_i - y_j)^2
+    C = (x_norm[:, None] - ranks_norm[None, :]) ** 2
+    
+    # Safe scaled Gibbs kernel with row-wise log-stabilization
+    safe_eps = max(epsilon, 1e-6)
+    C_scaled = C / safe_eps
+    C_min = np.min(C_scaled, axis=1, keepdims=True)
+    K = np.exp(-np.clip(C_scaled - C_min, 0.0, 500.0))
     
     # Sinkhorn-Knopp fixed-point iteration
     u = np.ones(n, dtype=float)
@@ -157,11 +157,11 @@ def optimal_transport_sort(
     
     for it in range(1, max_iters + 1):
         Kv = K @ v
-        Kv[Kv < 1e-30] = 1e-30
+        Kv = np.maximum(Kv, 1e-30)
         u = 1.0 / Kv
         
         KTu = K.T @ u
-        KTu[KTu < 1e-30] = 1e-30
+        KTu = np.maximum(KTu, 1e-30)
         v = 1.0 / KTu
         
         P = np.diag(u) @ K @ np.diag(v)
@@ -172,9 +172,13 @@ def optimal_transport_sort(
             break
 
     P = np.diag(u) @ K @ np.diag(v)
+    row_sums = np.sum(P, axis=1, keepdims=True)
+    row_sums = np.maximum(row_sums, 1e-30)
+    P = P / row_sums
+    
     col_sums = np.sum(P, axis=0, keepdims=True)
-    col_sums[col_sums < 1e-30] = 1.0
-    P /= col_sums
+    col_sums = np.maximum(col_sums, 1e-30)
+    P = P / col_sums
 
     if soft or mode == "pure":
         sorted_result = P.T @ vals

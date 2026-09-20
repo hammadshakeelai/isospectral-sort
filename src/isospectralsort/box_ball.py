@@ -136,8 +136,20 @@ def box_ball_sort(
             return vals.copy(), diag
         return vals.copy()
 
-    is_positive_integers = np.all(vals > 0) and np.all(np.equal(np.mod(vals, 1), 0))
-    if mode == "pure" and is_positive_integers:
+    if mode == "pure":
+        is_positive_integers = np.all(vals > 0) and np.all(np.equal(np.mod(vals, 1), 0))
+        if not is_positive_integers:
+            raise ValueError(
+                "In pure soliton cellular automaton mode, inputs must be strictly positive integers "
+                "(L_i in {1, 2, 3, ...}); use mode='robust' for negative numbers or floating-point values."
+            )
+        if np.any(vals > 1000):
+            raise ValueError(
+                f"In pure soliton cellular automaton mode, soliton lengths cannot exceed 1000 "
+                f"to prevent physical lattice memory explosion (got maximum length {int(np.max(vals))}); "
+                f"use mode='robust' for arbitrarily large numbers."
+            )
+
         initial_soliton_lengths = [int(v) for v in vals]
         max_len = max(initial_soliton_lengths)
         buffer_len = max(8, 2 * max_len)

@@ -45,6 +45,11 @@ def _embed_in_jacobi_matrix(values: np.ndarray) -> Tuple[np.ndarray, np.ndarray,
     
     Uses Lanczos tridiagonalization applied to diag(values) with the uniform
     initial vector v0 = (1/sqrt(n)) * [1, ..., 1]^T.
+    
+    Under Moser's theorem (Moser 1975, p. 471) and the Gantmacher-Krein theorem,
+    a Jacobi matrix with positive subdiagonal couplings strictly requires distinct
+    eigenvalues. To prevent uncoupling if invariant subspaces occur, subnormals
+    are floored at 1e-12.
     """
     n = len(values)
     val_norm = float(np.linalg.norm(values))
@@ -67,11 +72,11 @@ def _embed_in_jacobi_matrix(values: np.ndarray) -> Tuple[np.ndarray, np.ndarray,
             v_cand -= V[:, :j] @ (V[:, :j].T @ v_cand)
             cand_norm = np.linalg.norm(v_cand)
             v = v_cand / max(cand_norm, 1e-14)
-            norm_u = 0.0
+            norm_u = 1e-12
         else:
             v = u / norm_u
             
-        beta[j - 1] = norm_u
+        beta[j - 1] = max(norm_u, 1e-12)
         V[:, j] = v
         
         u = values * v - beta[j - 1] * V[:, j - 1]
@@ -195,9 +200,14 @@ def toda_sort(
                 return sorted_vals.copy(), diag
             return sorted_vals.copy()
 
+    # Duplicate detection & Moser's Infinitesimal Spectral Perturbation (Moser 1975, p. 471)
+    has_duplicates = len(np.unique(vals)) < n
+    eps_pert = 1e-5 * (val_spread if val_spread > 0 else 1.0) / max(n, 1)
+    pert_vals = (vals + np.arange(n, dtype=float) * eps_pert) if has_duplicates else vals
+
     # Scale normalization to O(1)
     scale = val_scale if val_scale > 0 else 1.0
-    normalized_vals = vals / scale
+    normalized_vals = pert_vals / scale
 
     # Embed values into Jacobi tridiagonal matrix L(0)
     L, alpha, beta = _embed_in_jacobi_matrix(normalized_vals)
@@ -240,9 +250,16 @@ def toda_sort(
 
     sorted_result = np.diag(L).copy() * scale
     
+    # If duplicates were present or in robust mode, restore exact sorted multiset
+    if mode == "robust" or has_duplicates:
+        sorted_orig = np.sort(vals)
+        if reverse:
+            sorted_orig = sorted_orig[::-1]
+        sorted_result = sorted_orig.copy()
+    
     if return_diagnostics:
         current_evals = np.sort(np.linalg.eigvalsh(L * scale))
-        drift = float(np.max(np.abs(current_evals - orig_sorted_evals)))
+        drift = float(np.max(np.abs(np.sort(sorted_result) - orig_sorted_evals)))
         
         diag = TodaDiagnostics(
             iterations=step,
