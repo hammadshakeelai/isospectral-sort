@@ -71,17 +71,19 @@ def main():
     print(f"Eigenvalue Drift     : {t_diag.eigenvalue_drift:.2e}")
 
     # -------------------------------------------------------------
-    # 3. Optimal Transport
+    # 3. Optimal Transport (Brenier 1991, Cuturi 2013, Blondel 2020)
     # -------------------------------------------------------------
-    print_banner("3. MONGE-KANTOROVICH OPTIMAL TRANSPORT & SINKHORN DIFFERENTIABLE SORTING")
-    print("Space: Birkhoff Polytope of doubly stochastic matrices with entropic regularization.")
-    print("Brenier's 1D monotonicity theorem guarantees the optimal transport map is the sorting permutation.")
+    print_banner("3. MARCO CUTURI & MATHIEU BLONDEL: ENTROPIC SINKHORN DIFFERENTIABLE SORTING")
+    print("Papers: Cuturi (NeurIPS 2013), Blondel et al. (Google Brain, ICML 2020), Brenier (1991).")
+    print("Space : Birkhoff Polytope B_n with entropic regularization: min <P, C> - ε H(P).")
+    print("Method: Lightspeed Sinkhorn fixed-point iterations; smooth projection onto the permutahedron.")
     
     ot_hard = optimal_transport_sort(raw_input, soft=False)
     ot_soft, ot_diag = optimal_transport_sort(raw_input, soft=True, return_diagnostics=True)
     print(f"Discrete Hard Sorted : {[round(float(x), 2) for x in ot_hard]}")
-    print(f"Continuous Soft Sort : {[round(float(x), 2) for x in ot_soft]}")
-    print(f"Sinkhorn Iterations  : {ot_diag.iterations} (Entropy H(P) = {ot_diag.entropy:.4f})")
+    print(f"Continuous Soft Sort : {[round(float(x), 2) for x in ot_soft]} (Blondel s = P^T x)")
+    print(f"Sinkhorn Scaling     : {ot_diag.iterations} iterations (Shannon Entropy H(P) = {ot_diag.entropy:.4f})")
+    print(f"Regularization Temp  : ε = {ot_diag.temperature} (Converged: {ot_diag.converged})")
 
     # -------------------------------------------------------------
     # 4. Box-Ball System

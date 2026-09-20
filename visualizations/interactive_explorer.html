@@ -121,9 +121,11 @@
                 <div class="card">
                     <h2>Configuration</h2>
                     <label>Algorithm</label>
-                    <select id="algoSelect">
-                        <option value="brockett">Roger Brockett Double-Bracket Flow</option>
-                        <option value="bbs">Takahashi-Satsuma Box-Ball Solitons</option>
+                    <select id="algoSelect" onchange="startSimulation()">
+                        <option value="brockett">Roger Brockett Double-Bracket Flow (1991)</option>
+                        <option value="toda">Jürgen Moser Toda Lattice (1975)</option>
+                        <option value="ot">Marco Cuturi & Mathieu Blondel Optimal Transport (2013, 2020)</option>
+                        <option value="bbs">Takahashi-Satsuma Box-Ball Solitons (1990)</option>
                     </select>
 
                     <label>Input Values</label>
@@ -181,9 +183,18 @@
             if (vals.length < 2) return;
 
             const algo = document.getElementById('algoSelect').value;
+            const mathBox = document.getElementById('mathExplanation');
             if (algo === 'brockett') {
+                mathBox.innerHTML = `$$\\frac{dH}{dt} = [H, [H, N]] \\quad \\text{on the adjoint orbit } \\mathcal{O}(H_0) \\subset \\mathfrak{so}(n)$$ Continuous rotation strictly preserves eigenvalues while diagonalizing into sorted order.`;
                 simulateBrockett(vals);
+            } else if (algo === 'toda') {
+                mathBox.innerHTML = `$$\\frac{dL}{dt} = [B, L] \\quad \\text{Moser (1975) Flaschka Jacobi Lattice}$$ Physical particles repel under exponential potential, scattering until $a_k(t) \\to 0$ and velocities sort.`;
+                simulateToda(vals);
+            } else if (algo === 'ot') {
+                mathBox.innerHTML = `$$\\min_{P \\in \\mathcal{B}_n} \\langle P, C \\rangle - \\varepsilon H(P) \\quad \\text{Cuturi (2013) & Blondel (2020)}$$ Entropic Sinkhorn matrix scaling computes doubly-stochastic $P_\\varepsilon$, projecting continuously onto the permutahedron $s = P_\\varepsilon^T x$.`;
+                simulateOT(vals);
             } else {
+                mathBox.innerHTML = `$$v = L \\quad \\text{Takahashi-Satsuma (1990) Soliton Automaton}$$ Contiguous clusters of balls collide elastically; larger solitons move faster and sort in space.`;
                 simulateBBS(vals);
             }
         }
@@ -293,6 +304,208 @@
                 }
             }
 
+            loop();
+        }
+
+        function simulateToda(vals) {
+            const n = vals.length;
+            const canvas = document.getElementById('matrixCanvas');
+            const ctx = canvas.getContext('2d');
+            const status = document.getElementById('statusOutput');
+
+            // Initialize Jacobi matrix L with diagonal b and off-diagonal a
+            let b = [...vals];
+            let a = Array.from({length: n - 1}, () => 1.5);
+
+            let step = 0;
+            const maxSteps = 300;
+            const dt = 0.02;
+
+            function loop() {
+                // Flaschka equations: db_k = 2(a_k^2 - a_{k-1}^2), da_k = a_k(b_{k+1} - b_k)
+                let da = Array(n - 1).fill(0);
+                let db = Array(n).fill(0);
+
+                for (let k = 0; k < n - 1; k++) {
+                    da[k] = a[k] * (b[k + 1] - b[k]);
+                }
+                for (let k = 0; k < n; k++) {
+                    const left = k > 0 ? a[k - 1] * a[k - 1] : 0;
+                    const right = k < n - 1 ? a[k] * a[k] : 0;
+                    db[k] = 2 * (right - left);
+                }
+
+                for (let k = 0; k < n - 1; k++) a[k] = Math.max(0, a[k] + dt * da[k]);
+                for (let k = 0; k < n; k++) b[k] += dt * db[k];
+
+                const offdiag = Math.sqrt(a.reduce((sum, v) => sum + 2 * v * v, 0));
+
+                // Render Canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const cellSize = Math.min(260 / n, 40);
+                const startX = 30;
+                const startY = 30;
+
+                ctx.font = "12px sans-serif";
+                ctx.fillStyle = "#f0f6fc";
+                ctx.fillText(`Jacobi Matrix L(t) at Step ${step} / ${maxSteps}`, startX, 20);
+
+                let maxAbs = Math.max(...vals.map(Math.abs), 1);
+                for (let i = 0; i < n; i++) {
+                    for (let j = 0; j < n; j++) {
+                        let v = 0;
+                        if (i === j) v = b[i];
+                        else if (Math.abs(i - j) === 1) v = a[Math.min(i, j)];
+
+                        const norm = Math.min(Math.abs(v) / maxAbs, 1);
+                        ctx.fillStyle = v >= 0 ? `rgba(88, 166, 255, ${norm})` : `rgba(248, 81, 73, ${norm})`;
+                        ctx.fillRect(startX + j * cellSize, startY + i * cellSize, cellSize - 2, cellSize - 2);
+                    }
+                }
+
+                // Bar chart: sorted eigenvalues emerge on diagonal in descending/ascending order
+                const barStartX = 340;
+                ctx.fillStyle = "#f0f6fc";
+                ctx.fillText("Diagonal Entries b_k(t) -> Asymptotic Particles", barStartX, 20);
+                for (let i = 0; i < n; i++) {
+                    const currentVal = b[i];
+                    ctx.fillStyle = "#58a6ff";
+                    const barH = (currentVal / maxAbs) * 80;
+                    ctx.fillRect(barStartX + i * 45, 160, 20, -barH);
+                    ctx.fillStyle = "#8b949e";
+                    ctx.fillText(`${currentVal.toFixed(1)}`, barStartX + i * 45 - 4, 180);
+                }
+
+                status.innerHTML = `Step: ${step}<br>Subdiagonal Couplings a_k Norm: ${offdiag.toFixed(5)}<br>Status: ${offdiag < 0.05 ? "CONVERGED (PARTICLES DECOUPLED)" : "SCATTERING PARTICLES..."}`;
+
+                step++;
+                if (step < maxSteps && offdiag > 0.005) {
+                    animId = requestAnimationFrame(loop);
+                }
+            }
+            loop();
+        }
+
+        function simulateOT(vals) {
+            const n = vals.length;
+            const canvas = document.getElementById('matrixCanvas');
+            const ctx = canvas.getContext('2d');
+            const status = document.getElementById('statusOutput');
+
+            // Normalized input and target canonical ranks
+            const ranks = Array.from({length: n}, (_, i) => i + 1);
+            const sortedVals = [...vals].sort((a, b) => a - b);
+            const valMin = Math.min(...vals);
+            const valMax = Math.max(...vals);
+            const range = Math.max(valMax - valMin, 1);
+
+            // Cost matrix C_ij = (normalized_x_i - normalized_rank_j)^2
+            const C = [];
+            for (let i = 0; i < n; i++) {
+                C[i] = [];
+                const xi = (vals[i] - valMin) / range;
+                for (let j = 0; j < n; j++) {
+                    const rj = j / (n - 1 || 1);
+                    C[i][j] = (xi - rj) * (xi - rj);
+                }
+            }
+
+            let step = 0;
+            const maxSteps = 120;
+
+            function loop() {
+                // Anneal temperature epsilon from 5.0 down to 0.015
+                const progress = step / maxSteps;
+                const eps = 5.0 * Math.pow(0.015 / 5.0, progress);
+
+                // Gibbs Kernel K_ij = exp(-C_ij / eps)
+                const K = [];
+                for (let i = 0; i < n; i++) {
+                    K[i] = [];
+                    for (let j = 0; j < n; j++) {
+                        K[i][j] = Math.exp(-C[i][j] / eps);
+                    }
+                }
+
+                // Sinkhorn-Knopp scaling
+                let u = Array(n).fill(1 / n);
+                let v = Array(n).fill(1 / n);
+                for (let iter = 0; iter < 25; iter++) {
+                    // v = (1/n) / (K^T u)
+                    for (let j = 0; j < n; j++) {
+                        let sum = 0;
+                        for (let i = 0; i < n; i++) sum += K[i][j] * u[i];
+                        v[j] = (1 / n) / Math.max(sum, 1e-12);
+                    }
+                    // u = (1/n) / (K v)
+                    for (let i = 0; i < n; i++) {
+                        let sum = 0;
+                        for (let j = 0; j < n; j++) sum += K[i][j] * v[j];
+                        u[i] = (1 / n) / Math.max(sum, 1e-12);
+                    }
+                }
+
+                // Doubly stochastic transport plan P_ij = u_i * K_ij * v_j * n
+                // so sum_j P_ij = 1 and sum_i P_ij = 1
+                const P = [];
+                let entropy = 0;
+                for (let i = 0; i < n; i++) {
+                    P[i] = [];
+                    for (let j = 0; j < n; j++) {
+                        const prob = Math.min(1, Math.max(0, u[i] * K[i][j] * v[j] * n));
+                        P[i][j] = prob;
+                        if (prob > 1e-10) entropy -= prob * Math.log(prob);
+                    }
+                }
+
+                // Blondel soft sort: s_j = sum_i P_ij * vals[i]
+                const s = Array(n).fill(0);
+                for (let j = 0; j < n; j++) {
+                    for (let i = 0; i < n; i++) {
+                        s[j] += P[i][j] * vals[i];
+                    }
+                }
+
+                // Render Heatmap on Canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const cellSize = Math.min(260 / n, 40);
+                const startX = 30;
+                const startY = 30;
+
+                ctx.font = "12px sans-serif";
+                ctx.fillStyle = "#f0f6fc";
+                ctx.fillText(`Sinkhorn Matrix P_ε at ε = ${eps.toFixed(4)}`, startX, 20);
+
+                for (let i = 0; i < n; i++) {
+                    for (let j = 0; j < n; j++) {
+                        const pVal = P[i][j];
+                        ctx.fillStyle = `rgba(56, 139, 253, ${pVal.toFixed(3)})`;
+                        ctx.fillRect(startX + j * cellSize, startY + i * cellSize, cellSize - 2, cellSize - 2);
+                    }
+                }
+
+                // Bar chart of soft-sorted coordinates s_j
+                const barStartX = 340;
+                let maxAbs = Math.max(...vals.map(Math.abs), 1);
+                ctx.fillStyle = "#f0f6fc";
+                ctx.fillText("Blondel Soft Sort s = P^T x -> Permutahedron Projection", barStartX, 20);
+
+                for (let j = 0; j < n; j++) {
+                    const currentVal = s[j];
+                    ctx.fillStyle = "#3fb950";
+                    const barH = (currentVal / maxAbs) * 80;
+                    ctx.fillRect(barStartX + j * 45, 160, 20, -barH);
+                    ctx.fillStyle = "#8b949e";
+                    ctx.fillText(`${currentVal.toFixed(1)}`, barStartX + j * 45 - 4, 180);
+                }
+
+                status.innerHTML = `Step: ${step} / ${maxSteps}<br>Temperature ε: ${eps.toFixed(4)} | Shannon Entropy H(P): ${entropy.toFixed(4)}<br>Status: ${eps < 0.03 ? "CONVERGED (PERMUTAHERON EXTREME)" : "ENTROPIC COOLING (SINKHORN)..."}`;
+
+                step++;
+                if (step <= maxSteps) {
+                    animId = requestAnimationFrame(loop);
+                }
+            }
             loop();
         }
 
